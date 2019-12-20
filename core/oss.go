@@ -3,6 +3,7 @@ package core
 import (
     "fmt"
     "os"
+    "../utils"
     "github.com/aliyun/aliyun-oss-go-sdk/oss"
     "github.com/Unknwon/goconfig"
 )
@@ -10,6 +11,7 @@ import (
 // define interface
 type Osser interface {
     ReturnSize() string
+    ListFile()
 }
 
 // define struct of oss client
@@ -60,3 +62,34 @@ func (o *OSS) ReturnSize() string {
     return props["Content-Length"][0]
 }
 
+// list 
+func (o *OSS) ListFile() {
+    cfg, _ := goconfig.LoadConfigFile("conf/app.ini")
+    bucketName, _ := cfg.GetValue("oss","bucket")
+
+    bucket, _ := o.client.Bucket(bucketName)
+
+    marker := ""
+    for {
+        lsRes, err := bucket.ListObjects(oss.Marker(marker))
+        if err != nil {
+            fmt.Println("Error:", err)
+            os.Exit(-1)
+        }
+
+
+        for _, object := range lsRes.Objects {
+            fmt.Println("Bucket: ", object.Key)
+            props, _ := bucket.GetObjectDetailedMeta(object.Key)
+
+            s := utils.FormatSize(props["Content-Length"][0])
+            fmt.Println(s)
+        }
+
+        if lsRes.IsTruncated {
+            marker = lsRes.NextMarker
+        } else {
+            break
+        }
+    }
+}
