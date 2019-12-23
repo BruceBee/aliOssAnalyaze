@@ -1,11 +1,16 @@
+/*
+@Author : Bruce Bee
+@Date   : 2019/12/17 10:17
+@Email  : mzpy_1119@126.com
+*/
 package core
 
 import (
+    "../utils"
     "fmt"
-    "os"
-    "../utils" 
-    "github.com/aliyun/aliyun-oss-go-sdk/oss"
     "github.com/Unknwon/goconfig"
+    "github.com/aliyun/aliyun-oss-go-sdk/oss"
+    "os"
 )
 
 // define interface
@@ -21,6 +26,26 @@ type OSS struct {
 
 // initialization
 func InitOSS() Osser{
+
+    act := Active_change{
+        User: 1,
+        Poster:  "22",
+    }
+    act_res := act.Query()
+    fmt.Println(act_res)
+
+
+    ban := Banner_nfo{
+        GrpID: 1,
+        PictureUrl:  "22",
+    }
+    ban_res := ban.Query()
+    fmt.Println(ban_res)
+
+
+
+
+
     cfg, err := goconfig.LoadConfigFile("conf/app.ini")
     if err != nil {
         panic("panic")

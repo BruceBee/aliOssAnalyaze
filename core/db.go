@@ -1,24 +1,22 @@
+/*
+@Author : Bruce Bee
+@Date   : 2019/12/17 10:17
+@Email  : mzpy_1119@126.com
+*/
 package core
 
 import (
-    "fmt"
     "database/sql"
-    "encoding/json"
-    _ "github.com/go-sql-driver/mysql"
-    "github.com/pkg/errors"
+    "fmt"
     "github.com/Unknwon/goconfig"
+    _ "github.com/go-sql-driver/mysql"
 )
 
-var DB *sql.DB
+//var DB *sql.DB
 
-type City struct {
-    id 	int64
-    city string
-    url string
-}
-
-func InitDB() {
+func InitDB() (*sql.DB, error){
     cfg, err := goconfig.LoadConfigFile("conf/app.ini")
+
     if err != nil {
         panic("panic")
     }
@@ -40,26 +38,10 @@ func InitDB() {
     DB, _ := sql.Open("mysql", url)
     if err := DB.Ping(); err != nil {
         fmt.Println("open database fail")
-        return
+        return nil, err
     }
     fmt.Println("connnect success")
-    fmt.Printf("hello world")
-    return
+    return DB, nil
 }
 
-func Query() {
-    var city City
-    rows , err := DB.Query("SELECT * FROM city")
-    if err == nil {
-        errors.New("QUERY INCUR ERROR")
-    }
-    for rows.Next() {
-        e := rows.Scan(city.id, city.city, city.url)
-        if e != nil {
-            fmt.Println(json.Marshal(city))
-        }
-    }
-    rows.Close()
-    defer DB.Close()
-}
 
