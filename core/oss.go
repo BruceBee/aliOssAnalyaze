@@ -3,7 +3,7 @@ package core
 import (
     "fmt"
     "os"
-    "../utils"
+    "../utils" 
     "github.com/aliyun/aliyun-oss-go-sdk/oss"
     "github.com/Unknwon/goconfig"
 )
@@ -70,26 +70,62 @@ func (o *OSS) ListFile() {
     bucket, _ := o.client.Bucket(bucketName)
 
     marker := ""
+    prefix := oss.Prefix("")    
+   
+   /**
+
+    lsRes, err := bucket.ListObjects(oss.Marker(marker), prefix)
+    if err != nil {
+        fmt.Println("Error:", err)
+        os.Exit(-1)
+    }
+
+
+    fmt.Println(lsRes.Prefix)
+    
+    for _, object := range lsRes.Objects {
+        fmt.Println("Bucket: ", object.Key)
+        props, _ := bucket.GetObjectDetailedMeta(object.Key)
+
+        s := utils.FormatSize(props["Content-Length"][0])
+        fmt.Println(s)
+    }
+    **/
+
+
+    deli := "/"   
+ 
     for {
-        lsRes, err := bucket.ListObjects(oss.Marker(marker))
+        lsRes, err := bucket.ListObjects(oss.Marker(marker), prefix, oss.Delimiter(deli))
+        // lsRes, err := bucket.ListObjects(oss.Marker(marker), prefix)
         if err != nil {
             fmt.Println("Error:", err)
             os.Exit(-1)
         }
 
+        for _, dirName := range lsRes.CommonPrefixes {
+            fmt.Println("DIR: ", dirName)
+        }
+       
+        // fmt.Println(lsRes.Prefix)
 
         for _, object := range lsRes.Objects {
-            fmt.Println("Bucket: ", object.Key)
+            fmt.Println("FILE: ", object.Key)
             props, _ := bucket.GetObjectDetailedMeta(object.Key)
-
+            
+            //fmt.Println(object)
+      
             s := utils.FormatSize(props["Content-Length"][0])
-            fmt.Println(s)
+            fmt.Println("SIZE: ",s)
         }
 
+        
         if lsRes.IsTruncated {
             marker = lsRes.NextMarker
         } else {
             break
         }
+       
     }
+    
 }
