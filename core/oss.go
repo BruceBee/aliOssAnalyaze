@@ -113,7 +113,7 @@ func (o *OSS) ReturnSize(groupID int64) error {
         t := strconv.Itoa(totalSize)
 
         CreateFile(fName,partLine + "\n")
-        CreateFile(fName,fmt.Sprintf("Totol: FileCount: %d ; FileSize: %s .\n",totalCount, utils.FormatSize(t) ))
+        CreateFile(fName,fmt.Sprintf("Total: FileCount: %d ; FileSize: %s .\n",totalCount, utils.FormatSize(t) ))
 
     }
 
@@ -151,7 +151,7 @@ func (o *OSS) ReturnSize(groupID int64) error {
         t := strconv.Itoa(totalSize)
 
         CreateFile(fName,partLine + "\n")
-        CreateFile(fName,fmt.Sprintf("Totol: FileCount: %d ; FileSize: %s .\n",totalCount, utils.FormatSize(t) ))
+        CreateFile(fName,fmt.Sprintf("Total: FileCount: %d ; FileSize: %s .\n",totalCount, utils.FormatSize(t) ))
 
     }
 
@@ -189,7 +189,7 @@ func (o *OSS) ReturnSize(groupID int64) error {
         t := strconv.Itoa(totalSize)
 
         CreateFile(fName,partLine + "\n")
-        CreateFile(fName,fmt.Sprintf("Totol: FileCount: %d ; FileSize: %s .\n",totalCount, utils.FormatSize(t) ))
+        CreateFile(fName,fmt.Sprintf("Total: FileCount: %d ; FileSize: %s .\n",totalCount, utils.FormatSize(t) ))
 
     }
 
@@ -227,7 +227,7 @@ func (o *OSS) ReturnSize(groupID int64) error {
         t := strconv.Itoa(totalSize)
 
         CreateFile(fName,partLine + "\n")
-        CreateFile(fName,fmt.Sprintf("Totol: FileCount: %d ; FileSize: %s .\n",totalCount, utils.FormatSize(t) ))
+        CreateFile(fName,fmt.Sprintf("Total: FileCount: %d ; FileSize: %s .\n",totalCount, utils.FormatSize(t) ))
 
     }
 
