@@ -11,9 +11,10 @@ import (
 	"fmt"
 )
 
-type Banner_nfo struct {
+// BannerNfo ...
+type BannerInfo struct {
 	GrpID int64 `db:group_id`
-	PictureUrl string `db:picture_url`
+	PictureURL string `db:picture_url`
 }
 
 type banner interface {
@@ -21,26 +22,27 @@ type banner interface {
 
 }
 
-func (b *Banner_nfo) Query() string {
+// Query ...
+func (b *BannerInfo) Query() string {
 
 	d, _ := InitDB()
-	dd , _:= QueryBannerById(d,28)
+	dd , _:= QueryBannerByID(d,28)
 	fmt.Println(dd)
 	return "121212"
 }
 
+// QueryBannerByID ...
+func QueryBannerByID(DB *sql.DB, id int) ([]BannerInfo, error) {
 
-func QueryBannerById(DB *sql.DB, id int) ([]Banner_nfo, error) {
-
-	var banns []Banner_nfo
+	var banns []BannerInfo
 	rows, err := DB.Query("SELECT picture_url FROM jdk_banner_info WHERE group_id= ?", id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}
 
 	for rows.Next() {
-		var bann Banner_nfo
-		rows.Scan(&bann.PictureUrl)
+		var bann BannerInfo
+		rows.Scan(&bann.PictureURL)
 		banns = append(banns, bann)
 	}
 	return banns, nil

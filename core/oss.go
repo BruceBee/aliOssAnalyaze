@@ -3,6 +3,8 @@
 @Date   : 2019/12/17 10:17
 @Email  : mzpy_1119@126.com
 */
+
+// Package core ...
 package core
 
 import (
@@ -13,37 +15,34 @@ import (
     "os"
 )
 
-// define interface
+// Osser ...
 type Osser interface {
     ReturnSize() string
     ListFile()
 }
 
-// define struct of oss client
+// OSS ...
 type OSS struct {
     client *oss.Client
 }
 
-// initialization
+// InitOSS initialization
 func InitOSS() Osser{
 
-    act := Active_change{
+    act := ActiveChange{
         User: 1,
         Poster:  "22",
     }
-    act_res := act.Query()
-    fmt.Println(act_res)
+    actRes := act.Query()
+    fmt.Println(actRes)
 
 
-    ban := Banner_nfo{
+    ban := BannerInfo{
         GrpID: 1,
-        PictureUrl:  "22",
+        PictureURL:  "22",
     }
-    ban_res := ban.Query()
-    fmt.Println(ban_res)
-
-
-
+    banRes := ban.Query()
+    fmt.Println(banRes)
 
 
     cfg, err := goconfig.LoadConfigFile("conf/app.ini")
@@ -51,11 +50,11 @@ func InitOSS() Osser{
         panic("panic")
     }
 
-    endpoint, err := cfg.GetValue("oss","endpoint")
-    acc_key, err := cfg.GetValue("oss","access_key")
-    acc_secret, err := cfg.GetValue("oss","access_secret")
+    endPoint, err := cfg.GetValue("oss","endpoint")
+    accKey, err := cfg.GetValue("oss","access_key")
+    accSecret, err := cfg.GetValue("oss","access_secret")
 
-    c, err := oss.New(endpoint, acc_key, acc_secret)
+    c, err := oss.New(endPoint, accKey, accSecret)
     if err != nil {
         fmt.Println("Error:", err)
         os.Exit(-1)
@@ -66,7 +65,7 @@ func InitOSS() Osser{
     }
 }
 
-// get file size
+// ReturnSize get file size
 func (o *OSS) ReturnSize() string {
     
     cfg, err := goconfig.LoadConfigFile("conf/app.ini")
@@ -87,7 +86,7 @@ func (o *OSS) ReturnSize() string {
     return props["Content-Length"][0]
 }
 
-// list 
+// ListFile ...
 func (o *OSS) ListFile() {
     cfg, _ := goconfig.LoadConfigFile("conf/app.ini")
     bucketName, _ := cfg.GetValue("oss","bucket")

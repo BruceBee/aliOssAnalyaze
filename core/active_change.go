@@ -11,27 +11,30 @@ import (
 	"fmt"
 )
 
-type Active_change struct {
+// ActiveChange ...
+type ActiveChange struct {
 	User int64 `db:user_id`
 	Poster string `db:poster`
 }
 
+// Activer ...
 type Activer interface {
 	Query() string
 
 }
 
-func (a *Active_change) Query() string {
+// Query ...
+func (a *ActiveChange) Query() string {
 
 	d, _ := InitDB()
-	dd := QueryActiveChangeById(d,15)
+	dd := QueryActiveChangeByID(d,15)
 	return dd.Poster
 }
 
+// QueryActiveChangeByID ...
+func QueryActiveChangeByID(DB *sql.DB, id int) ActiveChange {
 
-func QueryActiveChangeById(DB *sql.DB, id int) Active_change {
-
-	var Active Active_change
+	var Active ActiveChange
 	err := DB.QueryRow("SELECT poster FROM jdk_activity_change_log WHERE id = ?", id).Scan(&Active.Poster)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)

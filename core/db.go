@@ -3,6 +3,8 @@
 @Date   : 2019/12/17 10:17
 @Email  : mzpy_1119@126.com
 */
+
+// Package core ...
 package core
 
 import (
@@ -12,8 +14,7 @@ import (
     _ "github.com/go-sql-driver/mysql"
 )
 
-//var DB *sql.DB
-
+// InitDB ...
 func InitDB() (*sql.DB, error){
     cfg, err := goconfig.LoadConfigFile("conf/app.ini")
 

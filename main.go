@@ -6,11 +6,23 @@
 package main
 
 import (
-    "./core"
     "fmt"
+    "flag"
+
+    "./core"
 )
 
 func main() {
+
+    var groupID int
+    flag.IntVar(&groupID, "g", 0,"组织ID")
+    flag.Parse()
+
+    if (groupID == 0){
+        fmt.Printf("Usage of ./aliOssAnalyaze:\n  -g int\n        组织ID\n")
+        return
+    }
+
      // core.InitDB()
      a := core.InitOSS()
      c := a.ReturnSize()
