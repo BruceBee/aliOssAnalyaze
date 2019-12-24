@@ -41,7 +41,7 @@ func InitDB() (*sql.DB, error){
         fmt.Println("open database fail")
         return nil, err
     }
-    fmt.Println("connnect success")
+    //fmt.Println("connnect success")
     return DB, nil
 }
 
