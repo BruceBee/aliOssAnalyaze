@@ -12,11 +12,11 @@ import (
 )
 
 // QueryCard ...
-func QueryCard(group_id int64) (*BaseInfo, []string) {
+func QueryCard(groupID int64) (*BaseInfo, []string) {
 
 	db, _ := InitDB()
 	b := BaseInfo{
-		GrpID: group_id,
+		GrpID: groupID,
 		VoicesBucket: "jdk3t-voice",
 		VoicesPrefix: "backend_voice/",
 		TableName: "jdk_card_answer",

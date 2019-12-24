@@ -12,10 +12,10 @@ import (
 )
 
 // QueryBanner ...
-func QueryBanner(group_id int64) (*BaseInfo, []string) {
+func QueryBanner(groupID int64) (*BaseInfo, []string) {
 	db, _ := InitDB()
 	b := BaseInfo{
-		GrpID: group_id,
+		GrpID: groupID,
 		PictureBucket: "jdk3t-qiye",
 		PicturePrefix: "backend_pic/dst/poster/",
 		TableName: "jdk_banner_info",

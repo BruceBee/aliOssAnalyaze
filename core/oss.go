@@ -29,9 +29,9 @@ type OSS struct {
 }
 
 // Register ...
-func Register(group_id int64) (*BaseInfo, []string){
+func Register(groupID int64) (*BaseInfo, []string){
 
-    b, banRes := QueryBanner(group_id)
+    b, banRes := QueryBanner(groupID)
     //c, cardRes := QueryCard(group_id)
     //for _, x := range cardRes {
     //    fmt.Println(x)
@@ -64,7 +64,7 @@ func InitOSS() Osser{
 
 
 // ReturnSize get file size
-func (o *OSS) ReturnSize(group_id int64) error {
+func (o *OSS) ReturnSize(groupID int64) error {
 
     // partLint
     partLine := "-"
@@ -72,10 +72,10 @@ func (o *OSS) ReturnSize(group_id int64) error {
         partLine += "-"
     }
 
-    ban, banRes := Register(group_id)
+    ban, banRes := Register(groupID)
 
     fileName := []string{}
-    fileName = append(fileName, file_path)
+    fileName = append(fileName, filePath)
     fileName = append(fileName, ban.TableName)
 
 
@@ -104,7 +104,7 @@ func (o *OSS) ReturnSize(group_id int64) error {
             ContentLength, _ :=  strconv.Atoi(props["Content-Length"][0])
 
             totalSize += ContentLength
-            totalCount += 1
+            totalCount++
 
             fmt.Printf("%s | %s\n", Cont, b)
             CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, b))
@@ -142,7 +142,7 @@ func (o *OSS) ReturnSize(group_id int64) error {
             ContentLength, _ :=  strconv.Atoi(props["Content-Length"][0])
 
             totalSize += ContentLength
-            totalCount += 1
+            totalCount++
 
             fmt.Printf("%s | %s\n", Cont, b)
             CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, b))
@@ -180,7 +180,7 @@ func (o *OSS) ReturnSize(group_id int64) error {
             ContentLength, _ :=  strconv.Atoi(props["Content-Length"][0])
 
             totalSize += ContentLength
-            totalCount += 1
+            totalCount++
 
             fmt.Printf("%s | %s\n", Cont, b)
             CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, b))
@@ -218,7 +218,7 @@ func (o *OSS) ReturnSize(group_id int64) error {
             ContentLength, _ :=  strconv.Atoi(props["Content-Length"][0])
 
             totalSize += ContentLength
-            totalCount += 1
+            totalCount++
 
             fmt.Printf("%s | %s\n", Cont, b)
             CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, b))

@@ -11,14 +11,14 @@ import (
 	"os"
 )
 
-const file_path = "./data/"
+const filePath = "./data/"
 
 var (
 	newFile *os.File
 	err error
 )
 
-// CreateFile
+// CreateFile ...
 func CreateFile(filename string, text string)  {
 	file, _ := os.OpenFile(filename, os.O_RDWR | os.O_APPEND | os.O_CREATE, 0664)
 
