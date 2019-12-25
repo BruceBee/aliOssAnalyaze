@@ -24,12 +24,11 @@ func CreateFile(filename string, text string)  {
 
 	defer file.Close()
 
-	// 获取bufio.Writer实例
 	writer := bufio.NewWriter(file)
 
-	// 写入字符串
 	_, err = writer.WriteString(text)
-	// 清空缓存 确保写入磁盘
+
+	// clear cache and written to disk
 	writer.Flush()
 }
 

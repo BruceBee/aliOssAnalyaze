@@ -4,6 +4,7 @@
 @Email  : mzpy_1119@126.com
 */
 
+// Custom method, mainly through the database to get the URL list
 package core
 
 import (
@@ -11,7 +12,7 @@ import (
 	"fmt"
 )
 
-// QueryBanner ...
+// QueryBanner, Gets a list of basic data types
 func QueryBanner(groupID int64) (Q []BaseInfo) {
 	db, _ := InitDB()
 	b := BaseInfo{
@@ -35,7 +36,7 @@ func QueryBanner(groupID int64) (Q []BaseInfo) {
 	return
 }
 
-// QueryBannerURL ...
+// QueryBannerURL, Get the image URL list data through the database query
 func QueryBannerURL(DB *sql.DB, id int64) (banns []string, err error) {
 
 	rows, err := DB.Query("SELECT picture_url FROM jdk_banner_info WHERE group_id= ? GROUP BY picture_url;", id)

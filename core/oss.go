@@ -4,7 +4,17 @@
 @Email  : mzpy_1119@126.com
 */
 
-// Package core ...
+// The core of Project
+// 1、 Define osser interface and implement three methods respectively.
+//    `ReturnSize` is used for thread scheduling
+//    `sizeCalc` for file size statistics and `ListFile` for display a list of files.
+//
+// 2、 OSS-based SDK define structures whose primary purpose is to use SDK objects to query files.
+//
+// 3、 Goroutine is used for multi-threaded file queries and SDK calls,
+//    `chan` is used for communication between threads,
+//    and the main thread waitsfor execution using the `WaitGroup` method of the `sync` package.
+
 package core
 
 import (
@@ -21,18 +31,17 @@ import (
 // Osser ...
 type Osser interface {
     ReturnSize(int64) error
-    SizeCalc(BaseInfo, string, map[string]map[string]int)
+    sizeCalc(BaseInfo, string, map[string]map[string]int)
     ListFile()
 }
-
 
 // OSS ...
 type OSS struct {
     client *oss.Client
 }
 
-// Register ...
-func Register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
+// register ...
+func register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
     ban := QueryBanner(groupID)
     for _, b := range ban {
         r <- b
@@ -48,8 +57,8 @@ func Register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
 }
 
 
-// FileCalc ...
-func FileCalc(groupID int64, fc <- chan BaseInfo, wg *sync.WaitGroup, o *OSS, total map[string]map[string]int){
+// fileCalc ...
+func fileCalc(groupID int64, fc <- chan BaseInfo, wg *sync.WaitGroup, o *OSS, total map[string]map[string]int){
 
     for {
        fileObj := <- fc
@@ -57,7 +66,7 @@ func FileCalc(groupID int64, fc <- chan BaseInfo, wg *sync.WaitGroup, o *OSS, to
            break
        }
 
-       o.SizeCalc(fileObj, fileObj.TableName, total )
+       o.sizeCalc(fileObj, fileObj.TableName, total )
     }
     wg.Done()
 }
@@ -95,8 +104,8 @@ func (o *OSS) ReturnSize(groupID int64) error {
     wg := &sync.WaitGroup{}
     ch := make(chan BaseInfo, 1000)
     wg.Add(2)
-    go Register(groupID, ch, wg)
-    go FileCalc(groupID, ch, wg, o, totalData)
+    go register(groupID, ch, wg)
+    go fileCalc(groupID, ch, wg, o, totalData)
 
     time.Sleep(2 * time.Second)
     wg.Wait()
@@ -111,7 +120,7 @@ func (o *OSS) ReturnSize(groupID int64) error {
 }
 
 // SizeCalc ...
-func (o *OSS) SizeCalc(info BaseInfo, fileName string, total map[string]map[string]int){
+func (o *OSS) sizeCalc(info BaseInfo, fileName string, total map[string]map[string]int){
 
     partLine := partLine()
 

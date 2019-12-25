@@ -4,6 +4,7 @@
 @Email  : mzpy_1119@126.com
 */
 
+// Custom method, mainly through the database to get the URL list
 package core
 
 import (
@@ -11,7 +12,7 @@ import (
 	"fmt"
 )
 
-// QueryCard ...
+// QueryCard , Gets a list of basic data types
 func QueryCard(groupID int64) (Q []BaseInfo) {
 
 	db, _ := InitDB()
@@ -35,7 +36,7 @@ func QueryCard(groupID int64) (Q []BaseInfo) {
 	return
 }
 
-// QueryCardAnswerURL ...
+// QueryCardAnswerURL, Get the image URL list data through the database query
 func QueryCardAnswerURL(DB *sql.DB, id int64) (banns []string, err error) {
 
 	rows, err := DB.Query("SELECT voices FROM jdk_card_answer WHERE group_id= ? GROUP BY voices;", id)

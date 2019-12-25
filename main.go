@@ -13,15 +13,15 @@ import (
 
 func main() {
     var groupID int64
-    flag.Int64Var(&groupID, "g", 0,"组织ID")
+    flag.Int64Var(&groupID, "g", 0,"GROUP_ID")
     flag.Parse()
 
     if (groupID == 0){
-        fmt.Printf("Usage of ./aliOssAnalyaze:\n  -g int\n        组织ID\n")
+        fmt.Printf("Usage of ./aliOssAnalyaze:\n  -g int\n        GROUP_ID\n")
         return
     }
 
      oss := core.InitOSS()
      oss.ReturnSize(groupID)
-     
+
 }
