@@ -20,16 +20,15 @@ var (
 
 // CreateFile ...
 func CreateFile(filename string, text string)  {
-	file, _ := os.OpenFile(filename, os.O_RDWR | os.O_APPEND | os.O_CREATE, 0664)
+	file, _ := os.OpenFile(filePath + filename, os.O_RDWR | os.O_APPEND | os.O_CREATE, 0664)
 
 	defer file.Close()
 
-	// 获取bufio.Writer实例
 	writer := bufio.NewWriter(file)
 
-	// 写入字符串
 	_, err = writer.WriteString(text)
-	// 清空缓存 确保写入磁盘
+
+	// clear cache and written to disk
 	writer.Flush()
 }
 

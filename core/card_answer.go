@@ -4,6 +4,7 @@
 @Email  : mzpy_1119@126.com
 */
 
+// Custom method, mainly through the database to get the URL list
 package core
 
 import (
@@ -11,28 +12,34 @@ import (
 	"fmt"
 )
 
-// QueryCard ...
-func QueryCard(groupID int64) (*BaseInfo, []string) {
+// QueryCard , Gets a list of basic data types
+func QueryCard(groupID int64) (Q []BaseInfo) {
 
 	db, _ := InitDB()
 	b := BaseInfo{
 		GrpID: groupID,
-		VoicesBucket: "jdk3t-voice",
-		VoicesPrefix: "backend_voice/",
+		VoiceBucket: "jdk3t-voice",
+		VoicePrefix: "backend_voice/",
 		TableName: "jdk_card_answer",
 	}
 	url , err:= QueryCardAnswerURL(db, b.GrpID)
 	if nil != err {
 		fmt.Println("error")
 	}
-	return &b, url
+
+	for _, u := range url {
+		if (u != "") {
+			b.VoiceURL = u
+			Q = append(Q, b)
+		}
+	}
+	return
 }
 
-// QueryCardAnswerURL ...
-func QueryCardAnswerURL(DB *sql.DB, id int64) ([]string, error) {
+// QueryCardAnswerURL, Get the image URL list data through the database query
+func QueryCardAnswerURL(DB *sql.DB, id int64) (banns []string, err error) {
 
-	var banns []string
-	rows, err := DB.Query("SELECT voices FROM jdk_card_answer WHERE group_id= ?", id)
+	rows, err := DB.Query("SELECT voices FROM jdk_card_answer WHERE group_id= ? GROUP BY voices;", id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}
@@ -42,6 +49,6 @@ func QueryCardAnswerURL(DB *sql.DB, id int64) ([]string, error) {
 		rows.Scan(&bann)
 		banns = append(banns, bann)
 	}
-	return banns, nil
+	return
 }
 

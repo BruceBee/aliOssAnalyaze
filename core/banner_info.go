@@ -4,6 +4,7 @@
 @Email  : mzpy_1119@126.com
 */
 
+// Custom method, mainly through the database to get the URL list
 package core
 
 import (
@@ -11,13 +12,13 @@ import (
 	"fmt"
 )
 
-// QueryBanner ...
-func QueryBanner(groupID int64) (*BaseInfo, []string) {
+// QueryBanner, Gets a list of basic data types
+func QueryBanner(groupID int64) (Q []BaseInfo) {
 	db, _ := InitDB()
 	b := BaseInfo{
 		GrpID: groupID,
-		PictureBucket: "jdk3t-qiye",
-		PicturePrefix: "backend_pic/dst/poster/",
+		PicBucket: "jdk3t-qiye",
+		PicPrefix: "backend_pic/dst/poster/",
 		TableName: "jdk_banner_info",
 	}
 
@@ -25,14 +26,20 @@ func QueryBanner(groupID int64) (*BaseInfo, []string) {
 	if nil != err {
 		fmt.Println("error")
 	}
-	return &b, url
+
+	for _, u := range url {
+		if (u != "") {
+			b.PicURL = u
+			Q = append(Q, b)
+		}
+	}
+	return
 }
 
-// QueryBannerURL ...
-func QueryBannerURL(DB *sql.DB, id int64) ([]string, error) {
+// QueryBannerURL, Get the image URL list data through the database query
+func QueryBannerURL(DB *sql.DB, id int64) (banns []string, err error) {
 
-	var banns []string
-	rows, err := DB.Query("SELECT picture_url FROM jdk_banner_info WHERE group_id= ?", id)
+	rows, err := DB.Query("SELECT picture_url FROM jdk_banner_info WHERE group_id= ? GROUP BY picture_url;", id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}
@@ -42,7 +49,7 @@ func QueryBannerURL(DB *sql.DB, id int64) ([]string, error) {
 		rows.Scan(&bann)
 		banns = append(banns, bann)
 	}
-	return banns, nil
+	return
 }
 
 
