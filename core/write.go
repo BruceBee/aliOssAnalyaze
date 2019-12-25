@@ -20,7 +20,7 @@ var (
 
 // CreateFile ...
 func CreateFile(filename string, text string)  {
-	file, _ := os.OpenFile(filename, os.O_RDWR | os.O_APPEND | os.O_CREATE, 0664)
+	file, _ := os.OpenFile(filePath + filename, os.O_RDWR | os.O_APPEND | os.O_CREATE, 0664)
 
 	defer file.Close()
 

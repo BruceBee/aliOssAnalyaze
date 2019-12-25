@@ -12,7 +12,7 @@ import (
 )
 
 // QueryBanner ...
-func QueryBanner(groupID int64) ([]BaseInfo) {
+func QueryBanner(groupID int64) (Q []BaseInfo) {
 	db, _ := InitDB()
 	b := BaseInfo{
 		GrpID: groupID,
@@ -26,20 +26,19 @@ func QueryBanner(groupID int64) ([]BaseInfo) {
 		fmt.Println("error")
 	}
 
-	var B []BaseInfo
-
 	for _, u := range url {
-		b.PicURL = u
-		B = append(B, b)
+		if (u != "") {
+			b.PicURL = u
+			Q = append(Q, b)
+		}
 	}
-	return B
+	return
 }
 
 // QueryBannerURL ...
-func QueryBannerURL(DB *sql.DB, id int64) ([]string, error) {
+func QueryBannerURL(DB *sql.DB, id int64) (banns []string, err error) {
 
-	var banns []string
-	rows, err := DB.Query("SELECT picture_url FROM jdk_banner_info WHERE group_id= ?", id)
+	rows, err := DB.Query("SELECT picture_url FROM jdk_banner_info WHERE group_id= ? GROUP BY picture_url;", id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}
@@ -49,7 +48,7 @@ func QueryBannerURL(DB *sql.DB, id int64) ([]string, error) {
 		rows.Scan(&bann)
 		banns = append(banns, bann)
 	}
-	return banns, nil
+	return
 }
 
 

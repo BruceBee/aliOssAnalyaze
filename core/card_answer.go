@@ -12,7 +12,7 @@ import (
 )
 
 // QueryCard ...
-func QueryCard(groupID int64) []BaseInfo {
+func QueryCard(groupID int64) (Q []BaseInfo) {
 
 	db, _ := InitDB()
 	b := BaseInfo{
@@ -25,23 +25,20 @@ func QueryCard(groupID int64) []BaseInfo {
 	if nil != err {
 		fmt.Println("error")
 	}
-	var Q []BaseInfo
 
 	for _, u := range url {
 		if (u != "") {
 			b.VoiceURL = u
 			Q = append(Q, b)
 		}
-
 	}
-	return Q
+	return
 }
 
 // QueryCardAnswerURL ...
-func QueryCardAnswerURL(DB *sql.DB, id int64) ([]string, error) {
+func QueryCardAnswerURL(DB *sql.DB, id int64) (banns []string, err error) {
 
-	var banns []string
-	rows, err := DB.Query("SELECT voices FROM jdk_card_answer WHERE group_id= ?", id)
+	rows, err := DB.Query("SELECT voices FROM jdk_card_answer WHERE group_id= ? GROUP BY voices;", id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}
@@ -51,6 +48,6 @@ func QueryCardAnswerURL(DB *sql.DB, id int64) ([]string, error) {
 		rows.Scan(&bann)
 		banns = append(banns, bann)
 	}
-	return banns, nil
+	return
 }
 
