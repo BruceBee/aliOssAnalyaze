@@ -15,13 +15,18 @@ import (
     "os"
     "strconv"
     "strings"
+    "sync"
+    "time"
 )
 
 // Osser ...
 type Osser interface {
     ReturnSize(int64) error
+    SizeCalc(BaseInfo, []string, map[string]map[string]int)
     ListFile()
+
 }
+
 
 // OSS ...
 type OSS struct {
@@ -29,15 +34,46 @@ type OSS struct {
 }
 
 // Register ...
-func Register(groupID int64) (*BaseInfo, []string){
+func Register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
+    ban := QueryBanner(groupID)
+    for _, b := range ban {
+        r <- b
+    }
 
-    b, banRes := QueryBanner(groupID)
-    //c, cardRes := QueryCard(group_id)
-    //for _, x := range cardRes {
-    //    fmt.Println(x)
-    //}
-    return b, banRes
+    card := QueryCard(groupID)
+    for _, c := range card {
+        r <- c
+    }
+
+
+    wg.Done()
+    close(r)
+
 }
+
+
+// FileCalc ...
+func FileCalc(groupID int64, fc <- chan BaseInfo, wg *sync.WaitGroup, o *OSS){
+
+    totalData := map[string]map[string]int{}
+
+    for {
+       fileObj := <- fc
+       if (fileObj.GrpID == 0){
+           break
+       }
+       //f := fmt.Sprintf("GroupID: %d; PicURL: %s; VoiceURL: %s; VideoURL: %s; TABLE:%s ", fileObj.GrpID, fileObj.PicURL, fileObj.VoiceURL, fileObj.VideoURL, fileObj.TableName)
+       //fmt.Println(f)
+
+        fileName := []string{}
+        fileName = append(fileName, filePath)
+        fileName = append(fileName, fileObj.TableName)
+
+        o.SizeCalc(fileObj, fileName, totalData )
+    }
+    wg.Done()
+}
+
 
 // InitOSS initialization
 func InitOSS() Osser{
@@ -62,9 +98,26 @@ func InitOSS() Osser{
     }
 }
 
-
 // ReturnSize get file size
 func (o *OSS) ReturnSize(groupID int64) error {
+
+    wg := &sync.WaitGroup{}
+
+    ch := make(chan BaseInfo, 1000)
+
+    wg.Add(2)
+
+    go Register(groupID, ch, wg)
+    go FileCalc(groupID, ch, wg, o)
+
+    time.Sleep(2 * time.Second)
+    wg.Wait()
+
+    return nil
+}
+
+// SizeCalc ...
+func (o *OSS) SizeCalc(info BaseInfo, fileName []string, total map[string]map[string]int){
 
     // partLint
     partLine := "-"
@@ -72,105 +125,80 @@ func (o *OSS) ReturnSize(groupID int64) error {
         partLine += "-"
     }
 
-    ban, banRes := Register(groupID)
+    if (info.PicBucket != "" ) {
+        fName := fmt.Sprintf("%s%s", strings.Join(fileName, ""), "_Pic")
 
-    fileName := []string{}
-    fileName = append(fileName, filePath)
-    fileName = append(fileName, ban.TableName)
-
-
-    if (ban.PictureBucket != "" ){
-        fName :=  fmt.Sprintf("%s%s", strings.Join(fileName, ""), "_Pic")
-        totalSize := 0
-        totalCount := 0
-
-        bucket, err := o.client.Bucket(ban.PictureBucket)
+        bucket, err := o.client.Bucket(info.PicBucket)
         if err != nil {
             fmt.Println("Error:", err)
             os.Exit(-1)
         }
 
-        CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",ban.GrpID, ban.PictureBucket,ban.PicturePrefix ))
-        CreateFile(fName,partLine + "\n")
-
-        for _, b := range banRes {
-            props, err := bucket.GetObjectDetailedMeta(ban.PicturePrefix + b)
-            if err != nil {
-                fmt.Println("Error:", err)
-                os.Exit(-1)
-            }
-
-            Cont := utils.FormatSize(props["Content-Length"][0])
-            ContentLength, _ :=  strconv.Atoi(props["Content-Length"][0])
-
-            totalSize += ContentLength
-            totalCount++
-
-            fmt.Printf("%s | %s\n", Cont, b)
-            CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, b))
+        props, err := bucket.GetObjectDetailedMeta(info.PicPrefix + info.PicURL)
+        if err != nil {
+            fmt.Println("Error:", err)
+            os.Exit(-1)
         }
 
-        t := strconv.Itoa(totalSize)
+        Cont := utils.FormatSize(props["Content-Length"][0])
+        ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
 
-        CreateFile(fName,partLine + "\n")
-        CreateFile(fName,fmt.Sprintf("Total: FileCount: %d ; FileSize: %s .\n",totalCount, utils.FormatSize(t) ))
+        subMapB := make(map[string]int)
+        subMapB["totalSize"] = ContentLength
+        subMapB["totalCount"] = 1
+        total[fName] = subMapB
 
+        fmt.Printf("%s | %s\n", Cont, info.PicURL)
+        CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.PicURL))
     }
 
-    if (ban.VoicesBucket != "" ){
+
+
+    if (info.VoiceBucket != "" ){
         fName :=  fmt.Sprintf("%s%s", strings.Join(fileName, ""), "_Voice")
-        totalSize := 0
-        totalCount := 0
 
-        bucket, err := o.client.Bucket(ban.VoicesBucket)
+        bucket, err := o.client.Bucket(info.VoiceBucket)
         if err != nil {
             fmt.Println("Error:", err)
             os.Exit(-1)
         }
 
-        CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",ban.GrpID, ban.VoicesBucket,ban.VoicesPrefix ))
-        CreateFile(fName,partLine + "\n")
-
-        for _, b := range banRes {
-            props, err := bucket.GetObjectDetailedMeta(ban.VoicesPrefix + b)
-            if err != nil {
-                fmt.Println("Error:", err)
-                os.Exit(-1)
-            }
-
-            Cont := utils.FormatSize(props["Content-Length"][0])
-            ContentLength, _ :=  strconv.Atoi(props["Content-Length"][0])
-
-            totalSize += ContentLength
-            totalCount++
-
-            fmt.Printf("%s | %s\n", Cont, b)
-            CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, b))
+        props, err := bucket.GetObjectDetailedMeta(info.VoicePrefix + info.VoiceURL)
+        if err != nil {
+            fmt.Println("Error:", err)
+            os.Exit(-1)
         }
 
-        t := strconv.Itoa(totalSize)
+        Cont := utils.FormatSize(props["Content-Length"][0])
+        ContentLength, _ :=  strconv.Atoi(props["Content-Length"][0])
 
-        CreateFile(fName,partLine + "\n")
-        CreateFile(fName,fmt.Sprintf("Total: FileCount: %d ; FileSize: %s .\n",totalCount, utils.FormatSize(t) ))
+        subMapB := make(map[string]int)
+        subMapB["totalSize"] = ContentLength
+        subMapB["totalCount"] = 1
+        total[fName] = subMapB
 
+        fmt.Printf("%s | %s\n", Cont, info.VoiceURL)
+        CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.VoiceURL))
     }
 
-    if (ban.VideosBucket != "" ){
+    /*
+
+    if (info.VideoBucket != "" ){
         fName :=  fmt.Sprintf("%s%s", strings.Join(fileName, ""), "_Video")
         totalSize := 0
         totalCount := 0
 
-        bucket, err := o.client.Bucket(ban.VideosBucket)
+        bucket, err := o.client.Bucket(ban.VideoBucket)
         if err != nil {
             fmt.Println("Error:", err)
             os.Exit(-1)
         }
 
-        CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",ban.GrpID, ban.VideosBucket,ban.VideosPrefix ))
+        CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",ban.GrpID, ban.VideoBucket,ban.VideoPrefix ))
         CreateFile(fName,partLine + "\n")
 
         for _, b := range banRes {
-            props, err := bucket.GetObjectDetailedMeta(ban.VideosPrefix + b)
+            props, err := bucket.GetObjectDetailedMeta(ban.VideoPrefix + b)
             if err != nil {
                 fmt.Println("Error:", err)
                 os.Exit(-1)
@@ -193,7 +221,7 @@ func (o *OSS) ReturnSize(groupID int64) error {
 
     }
 
-    if (ban.DocBucket != "" ){
+    if (info.DocBucket != "" ){
         fName :=  fmt.Sprintf("%s%s", strings.Join(fileName, ""), "_Doc")
         totalSize := 0
         totalCount := 0
@@ -231,7 +259,7 @@ func (o *OSS) ReturnSize(groupID int64) error {
 
     }
 
-    return nil
+     */
 }
 
 // ListFile ...

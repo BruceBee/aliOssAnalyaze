@@ -13,6 +13,8 @@ import (
 
 func main() {
 
+
+
     var groupID int64
     flag.Int64Var(&groupID, "g", 0,"组织ID")
     flag.Parse()
@@ -26,7 +28,7 @@ func main() {
     //bucketName, _ := cfg.GetValue("oss","bucket")
 
      // core.InitDB()
-     a := core.InitOSS()
-     a.ReturnSize(groupID)
+     oss := core.InitOSS()
+     oss.ReturnSize(groupID)
      //a.ListFile()
 }

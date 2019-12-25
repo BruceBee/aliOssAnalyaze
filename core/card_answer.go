@@ -12,20 +12,29 @@ import (
 )
 
 // QueryCard ...
-func QueryCard(groupID int64) (*BaseInfo, []string) {
+func QueryCard(groupID int64) []BaseInfo {
 
 	db, _ := InitDB()
 	b := BaseInfo{
 		GrpID: groupID,
-		VoicesBucket: "jdk3t-voice",
-		VoicesPrefix: "backend_voice/",
+		VoiceBucket: "jdk3t-voice",
+		VoicePrefix: "backend_voice/",
 		TableName: "jdk_card_answer",
 	}
 	url , err:= QueryCardAnswerURL(db, b.GrpID)
 	if nil != err {
 		fmt.Println("error")
 	}
-	return &b, url
+	var Q []BaseInfo
+
+	for _, u := range url {
+		if (u != "") {
+			b.VoiceURL = u
+			Q = append(Q, b)
+		}
+
+	}
+	return Q
 }
 
 // QueryCardAnswerURL ...

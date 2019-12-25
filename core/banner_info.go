@@ -12,12 +12,12 @@ import (
 )
 
 // QueryBanner ...
-func QueryBanner(groupID int64) (*BaseInfo, []string) {
+func QueryBanner(groupID int64) ([]BaseInfo) {
 	db, _ := InitDB()
 	b := BaseInfo{
 		GrpID: groupID,
-		PictureBucket: "jdk3t-qiye",
-		PicturePrefix: "backend_pic/dst/poster/",
+		PicBucket: "jdk3t-qiye",
+		PicPrefix: "backend_pic/dst/poster/",
 		TableName: "jdk_banner_info",
 	}
 
@@ -25,7 +25,14 @@ func QueryBanner(groupID int64) (*BaseInfo, []string) {
 	if nil != err {
 		fmt.Println("error")
 	}
-	return &b, url
+
+	var B []BaseInfo
+
+	for _, u := range url {
+		b.PicURL = u
+		B = append(B, b)
+	}
+	return B
 }
 
 // QueryBannerURL ...

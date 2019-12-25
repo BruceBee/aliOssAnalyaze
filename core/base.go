@@ -9,13 +9,17 @@ package core
 // BaseInfo ...
 type BaseInfo struct {
 	GrpID int64
-	PictureBucket string
-	PicturePrefix string
-	VoicesBucket string
-	VoicesPrefix string
-	VideosBucket string
-	VideosPrefix string
+	PicBucket string
+	PicPrefix string
+	PicURL string
+	VoiceBucket string
+	VoicePrefix string
+	VoiceURL string
+	VideoBucket string
+	VideoPrefix string
+	VideoURL string
 	DocBucket string
 	DocPrefix string
+	DocURL string
 	TableName string
 }
