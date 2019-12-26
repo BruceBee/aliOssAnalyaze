@@ -44,12 +44,17 @@ type OSS struct {
 func register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
     ban := QueryBanner(groupID)
     for _, b := range ban {
-        r <- b
+      r <- b
     }
 
     card := QueryCard(groupID)
     for _, c := range card {
-       r <- c
+      r <- c
+    }
+
+    card_chapter := QueryCardChapter(groupID)
+    for _, c := range card_chapter {
+        r <- c
     }
 
     wg.Done()
@@ -65,7 +70,6 @@ func fileCalc(groupID int64, fc <- chan BaseInfo, wg *sync.WaitGroup, o *OSS, to
        if (fileObj.GrpID == 0){
            break
        }
-
        o.sizeCalc(fileObj, fileObj.TableName, total )
     }
     wg.Done()
@@ -138,24 +142,31 @@ func (o *OSS) sizeCalc(info BaseInfo, fileName string, total map[string]map[stri
 
         bucket, err := o.client.Bucket(info.PicBucket)
         if err != nil {
-            fmt.Println("Error:", err)
-            os.Exit(-1)
+            fmt.Println(info)
+            fmt.Println("BucketError:", err)
+            fmt.Println(info.PicBucket)
+            fmt.Println(info.PicPrefix + info.PicURL)
+            //os.Exit(-1)
+        }else {
+            props, err := bucket.GetObjectDetailedMeta(info.PicPrefix + info.PicURL)
+            if err != nil {
+                fmt.Println(info)
+                fmt.Println("ObjectError:", err)
+                fmt.Println(info.PicPrefix + info.PicURL)
+                //os.Exit(-1)
+            }else {
+
+                Cont := utils.FormatSize(props["Content-Length"][0])
+                ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
+
+                total[info.TableName+"_Pic"]["totalSize"] += ContentLength
+                total[info.TableName+"_Pic"]["totalCount"] ++
+
+                fmt.Printf("%s | %s\n", Cont, info.PicURL)
+                CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.PicURL))
+            }
+
         }
-
-        props, err := bucket.GetObjectDetailedMeta(info.PicPrefix + info.PicURL)
-        if err != nil {
-            fmt.Println("Error:", err)
-            os.Exit(-1)
-        }
-
-        Cont := utils.FormatSize(props["Content-Length"][0])
-        ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
-
-        total[info.TableName + "_Pic"]["totalSize"] += ContentLength
-        total[info.TableName + "_Pic"]["totalCount"] ++
-
-        fmt.Printf("%s | %s\n", Cont, info.PicURL)
-        CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.PicURL))
     }
 
 
@@ -174,13 +185,13 @@ func (o *OSS) sizeCalc(info BaseInfo, fileName string, total map[string]map[stri
         bucket, err := o.client.Bucket(info.VoiceBucket)
         if err != nil {
             fmt.Println("Error:", err)
-            os.Exit(-1)
+            //os.Exit(-1)
         }
 
         props, err := bucket.GetObjectDetailedMeta(info.VoicePrefix + info.VoiceURL)
         if err != nil {
             fmt.Println("Error:", err)
-            os.Exit(-1)
+            //os.Exit(-1)
         }
 
         Cont := utils.FormatSize(props["Content-Length"][0])
