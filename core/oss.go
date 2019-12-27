@@ -42,6 +42,7 @@ type OSS struct {
 
 // register ...
 func register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
+    /*
     ban := QueryBanner(groupID)
     for _, b := range ban {
       r <- b
@@ -54,6 +55,13 @@ func register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
 
     card_chapter := QueryCardChapter(groupID)
     for _, c := range card_chapter {
+        r <- c
+    }
+    */
+
+    card_question := QueryCardQuestion(groupID)
+    for _, c := range card_question {
+        //fmt.Println(c)
         r <- c
     }
 
