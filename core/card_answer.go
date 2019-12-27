@@ -8,8 +8,9 @@
 package core
 
 import (
-	"database/sql"
 	"fmt"
+	"database/sql"
+	"github.com/Unknwon/goconfig"
 )
 
 // QueryCard , Gets a list of basic data types
@@ -39,7 +40,17 @@ func QueryCard(groupID int64) (Q []BaseInfo) {
 // QueryCardAnswerURL, Get the image URL list data through the database query
 func QueryCardAnswerURL(DB *sql.DB, id int64) (banns []string, err error) {
 
-	rows, err := DB.Query("SELECT voices FROM jdk_card_answer WHERE group_id= ? GROUP BY voices;", id)
+	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
+	if err != nil {
+		panic("panic")
+	}
+
+	sql, err := cfg.GetValue("sql","card_answer")
+	if err != nil {
+		panic("panic")
+	}
+
+	rows, err := DB.Query(sql, id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}

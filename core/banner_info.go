@@ -8,8 +8,9 @@
 package core
 
 import (
-	"database/sql"
 	"fmt"
+	"database/sql"
+	"github.com/Unknwon/goconfig"
 )
 
 // QueryBanner, Gets a list of basic data types
@@ -39,7 +40,17 @@ func QueryBanner(groupID int64) (Q []BaseInfo) {
 // QueryBannerURL, Get the image URL list data through the database query
 func QueryBannerURL(DB *sql.DB, id int64) (banns []string, err error) {
 
-	rows, err := DB.Query("SELECT picture_url FROM jdk_banner_info WHERE group_id= ? GROUP BY picture_url;", id)
+	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
+	if err != nil {
+		panic("panic")
+	}
+
+	sql, err := cfg.GetValue("sql","banner_sql")
+	if err != nil {
+		panic("panic")
+	}
+
+	rows, err := DB.Query(sql, id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}

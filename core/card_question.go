@@ -7,12 +7,12 @@
 package core
 
 import (
-	"database/sql"
-	"encoding/json"
-	"github.com/Unknwon/goconfig"
 	"fmt"
 	"reflect"
 	"strings"
+	"database/sql"
+	"encoding/json"
+	"github.com/Unknwon/goconfig"
 )
 
 type CardQuestion struct {
@@ -70,7 +70,17 @@ func QueryCardQuestion(groupID int64) (Q []BaseInfo) {
 // QueryCardQuestionURL, Get the image URL list data through the database query
 func QueryCardQuestionURL(DB *sql.DB, id int64) (url []string, err error) {
 
-	rows, err := DB.Query("SELECT question_content,items from jdk_card_question WHERE group_id = ? ;", id)
+	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
+	if err != nil {
+		panic("panic")
+	}
+
+	sql, err := cfg.GetValue("sql","card_question")
+	if err != nil {
+		panic("panic")
+	}
+
+	rows, err := DB.Query(sql, id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}

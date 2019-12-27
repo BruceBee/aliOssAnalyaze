@@ -19,13 +19,13 @@ package core
 
 import (
     "../utils"
-    "fmt"
-    "github.com/Unknwon/goconfig"
-    "github.com/aliyun/aliyun-oss-go-sdk/oss"
     "os"
     "strconv"
     "sync"
     "time"
+    "fmt"
+    "github.com/Unknwon/goconfig"
+    "github.com/aliyun/aliyun-oss-go-sdk/oss"
 )
 
 // Osser ...
@@ -42,22 +42,22 @@ type OSS struct {
 
 // register ...
 func register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
-    /*
+
     ban := QueryBanner(groupID)
     for _, b := range ban {
-      r <- b
+     r <- b
     }
 
     card := QueryCard(groupID)
     for _, c := range card {
-      r <- c
+     r <- c
     }
 
     card_chapter := QueryCardChapter(groupID)
     for _, c := range card_chapter {
         r <- c
     }
-    */
+
 
     card_question := QueryCardQuestion(groupID)
     for _, c := range card_question {

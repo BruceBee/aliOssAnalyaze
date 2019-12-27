@@ -7,12 +7,12 @@
 package core
 
 import (
-	"database/sql"
-	"encoding/json"
-	"github.com/Unknwon/goconfig"
 	"fmt"
 	"reflect"
 	"strings"
+	"database/sql"
+	"encoding/json"
+	"github.com/Unknwon/goconfig"
 )
 
 type CardChapter struct {
@@ -68,7 +68,17 @@ func QueryCardChapter(groupID int64) (Q []BaseInfo) {
 // QueryCardAnswerURL, Get the image URL list data through the database query
 func QueryCardChapterURL(DB *sql.DB, id int64) (url []string, err error) {
 
-	rows, err := DB.Query("SELECT chapter_content FROM jdk_card_chapter WHERE group_id= ? ;", id)
+	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
+	if err != nil {
+		panic("panic")
+	}
+
+	sql, err := cfg.GetValue("sql","card_chapter")
+	if err != nil {
+		panic("panic")
+	}
+
+	rows, err := DB.Query(sql, id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}
