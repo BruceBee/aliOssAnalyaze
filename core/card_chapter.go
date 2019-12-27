@@ -7,20 +7,23 @@
 package core
 
 import (
+	"fmt"
+	"reflect"
+	"runtime"
+	"strings"
 	"database/sql"
 	"encoding/json"
 	"github.com/Unknwon/goconfig"
-	"fmt"
-	"reflect"
-	"strings"
 )
 
+// CardChapter is ...
 type CardChapter struct {
 	Type string `json:"type"`
 	Key string `json:"key"`
 	Content []CardChapterContent `json:"content"`
 }
 
+// CardChapterContent is ...
 type CardChapterContent struct {
 	PicURL string `json:"picture_url"`
 	PicName string `json:"picture_name"`
@@ -29,19 +32,23 @@ type CardChapterContent struct {
 	PicPosition string `json:"picture_position"`
 }
 
+// IsEmpty for check sturct is empty
 func (c CardChapter) IsEmpty() bool {
 	return reflect.DeepEqual(c, CardChapter{})
 }
 
-// QueryCard , Gets a list of basic data types
+// QueryCardChapter is get a list of basic data types
 func QueryCardChapter(groupID int64) (Q []BaseInfo) {
 
 	db, _ := InitDB()
+	_, file, _, _ := runtime.Caller(0)
+	f := strings.Split(file, "/")
+	filename :=strings.Split(f[len(f)-1], ".")[0]
 	b := BaseInfo{
 		GrpID: groupID,
 		PicBucket: "jdk3t-qiye",
 		PicPrefix: "backend_pic/dst/poster/",
-		TableName: "jdk_card_chapter",
+		TableName: filename,
 	}
 	url , err:= QueryCardChapterURL(db, b.GrpID)
 	if nil != err {
@@ -53,11 +60,11 @@ func QueryCardChapter(groupID int64) (Q []BaseInfo) {
 		panic("panic")
 	}
 
-	qiye_oss, _ := cfg.GetValue("oss-cdn-url","qiye_oss")
+	qiyeOss, _ := cfg.GetValue("oss-cdn-url","qiye_oss")
 
 	for _, u := range url {
 		if (u != "") {
-			b.PicURL = strings.Replace(u, qiye_oss, "", -1)
+			b.PicURL = strings.Replace(u, qiyeOss, "", -1)
 			Q = append(Q, b)
 		}
 	}
@@ -65,23 +72,33 @@ func QueryCardChapter(groupID int64) (Q []BaseInfo) {
 	return
 }
 
-// QueryCardAnswerURL, Get the image URL list data through the database query
+// QueryCardChapterURL for the image URL list data through the database query
 func QueryCardChapterURL(DB *sql.DB, id int64) (url []string, err error) {
 
-	rows, err := DB.Query("SELECT chapter_content FROM jdk_card_chapter WHERE group_id= ? ;", id)
+	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
+	if err != nil {
+		panic("panic")
+	}
+
+	sql, err := cfg.GetValue("sql","card_chapter")
+	if err != nil {
+		panic("panic")
+	}
+
+	rows, err := DB.Query(sql, id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}
 
 	for rows.Next() {
-		var card_str string
-		err := rows.Scan(&card_str)
+		var cardStr string
+		err := rows.Scan(&cardStr)
 
 		if err != nil {
 			fmt.Println(err)
 		}else {
 			var card []CardChapter
-			err = json.Unmarshal([]byte(card_str), &card)
+			err = json.Unmarshal([]byte(cardStr), &card)
 			if err != nil{
 				fmt.Println(err)
 			}else {

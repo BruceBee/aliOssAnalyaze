@@ -4,23 +4,29 @@
 @Email  : mzpy_1119@126.com
 */
 
-// Custom method, mainly through the database to get the URL list
+// Package core is a core custom method, mainly through the database to get the URL list
 package core
 
 import (
-	"database/sql"
 	"fmt"
+	"database/sql"
+	"github.com/Unknwon/goconfig"
+	"runtime"
+	"strings"
 )
 
 // QueryCard , Gets a list of basic data types
 func QueryCard(groupID int64) (Q []BaseInfo) {
 
 	db, _ := InitDB()
+	_, file, _, _ := runtime.Caller(0)
+	f := strings.Split(file, "/")
+	filename :=strings.Split(f[len(f)-1], ".")[0]
 	b := BaseInfo{
 		GrpID: groupID,
 		VoiceBucket: "jdk3t-voice",
 		VoicePrefix: "backend_voice/",
-		TableName: "jdk_card_answer",
+		TableName: filename,
 	}
 	url , err:= QueryCardAnswerURL(db, b.GrpID)
 	if nil != err {
@@ -36,10 +42,20 @@ func QueryCard(groupID int64) (Q []BaseInfo) {
 	return
 }
 
-// QueryCardAnswerURL, Get the image URL list data through the database query
+// QueryCardAnswerURL for the image URL list data through the database query
 func QueryCardAnswerURL(DB *sql.DB, id int64) (banns []string, err error) {
 
-	rows, err := DB.Query("SELECT voices FROM jdk_card_answer WHERE group_id= ? GROUP BY voices;", id)
+	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
+	if err != nil {
+		panic("panic")
+	}
+
+	sql, err := cfg.GetValue("sql","card_answer")
+	if err != nil {
+		panic("panic")
+	}
+
+	rows, err := DB.Query(sql, id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}

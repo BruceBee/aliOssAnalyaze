@@ -4,22 +4,28 @@
 @Email  : mzpy_1119@126.com
 */
 
-// Custom method, mainly through the database to get the URL list
+// Package core is a core custom method, mainly through the database to get the URL list
 package core
 
 import (
-	"database/sql"
 	"fmt"
+	"database/sql"
+	"github.com/Unknwon/goconfig"
+	"runtime"
+	"strings"
 )
 
-// QueryBanner, Gets a list of basic data types
+// QueryBanner for a list of basic data types
 func QueryBanner(groupID int64) (Q []BaseInfo) {
 	db, _ := InitDB()
+	_, file, _, _ := runtime.Caller(0)
+	f := strings.Split(file, "/")
+	filename :=strings.Split(f[len(f)-1], ".")[0]
 	b := BaseInfo{
 		GrpID: groupID,
 		PicBucket: "jdk3t-qiye",
 		PicPrefix: "backend_pic/dst/poster/",
-		TableName: "jdk_banner_info",
+		TableName: filename,
 	}
 
 	url , err:= QueryBannerURL(db, b.GrpID)
@@ -36,10 +42,20 @@ func QueryBanner(groupID int64) (Q []BaseInfo) {
 	return
 }
 
-// QueryBannerURL, Get the image URL list data through the database query
+// QueryBannerURL for the image URL list data through the database query
 func QueryBannerURL(DB *sql.DB, id int64) (banns []string, err error) {
 
-	rows, err := DB.Query("SELECT picture_url FROM jdk_banner_info WHERE group_id= ? GROUP BY picture_url;", id)
+	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
+	if err != nil {
+		panic("panic")
+	}
+
+	sql, err := cfg.GetValue("sql","banner_info")
+	if err != nil {
+		panic("panic")
+	}
+
+	rows, err := DB.Query(sql, id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}
