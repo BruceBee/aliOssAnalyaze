@@ -44,27 +44,32 @@ type OSS struct {
 func register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
 
     ban := QueryBanner(groupID)
-    for _, b := range ban {
-     r <- b
+    for _, ban_obj := range ban {
+       r <- ban_obj
     }
 
     card := QueryCard(groupID)
-    for _, c := range card {
-     r <- c
+    for _, card_obj := range card {
+       r <- card_obj
     }
 
     card_chapter := QueryCardChapter(groupID)
-    for _, c := range card_chapter {
-        r <- c
+    for _, card_ch_obj := range card_chapter {
+        r <- card_ch_obj
     }
-
 
     card_question := QueryCardQuestion(groupID)
-    for _, c := range card_question {
-        //fmt.Println(c)
-        r <- c
+    for _, card_ques_obj := range card_question {
+        r <- card_ques_obj
+    }
+    /*
+    column_question := QueryColumnAnswer(groupID)
+    for _, col_ques_obj := range column_question {
+        fmt.Println(c)
+        //r <- col_ques_obj
     }
 
+     */
     wg.Done()
     close(r)
 }

@@ -9,6 +9,7 @@ package core
 import (
 	"fmt"
 	"reflect"
+	"runtime"
 	"strings"
 	"database/sql"
 	"encoding/json"
@@ -39,11 +40,14 @@ func (c CardQuestion) IsEmpty() bool {
 func QueryCardQuestion(groupID int64) (Q []BaseInfo) {
 
 	db, _ := InitDB()
+	_, file, _, _ := runtime.Caller(0)
+	f := strings.Split(file, "/")
+	filename :=strings.Split(f[len(f)-1], ".")[0]
 	b := BaseInfo{
 		GrpID: groupID,
 		VoiceBucket: "jdk3t-voice",
 		VoicePrefix: "backend_voice/",
-		TableName: "jdk_card_question",
+		TableName: filename,
 	}
 	url , err:= QueryCardQuestionURL(db, b.GrpID)
 	if nil != err {

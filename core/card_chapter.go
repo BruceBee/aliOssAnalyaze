@@ -9,6 +9,7 @@ package core
 import (
 	"fmt"
 	"reflect"
+	"runtime"
 	"strings"
 	"database/sql"
 	"encoding/json"
@@ -37,11 +38,14 @@ func (c CardChapter) IsEmpty() bool {
 func QueryCardChapter(groupID int64) (Q []BaseInfo) {
 
 	db, _ := InitDB()
+	_, file, _, _ := runtime.Caller(0)
+	f := strings.Split(file, "/")
+	filename :=strings.Split(f[len(f)-1], ".")[0]
 	b := BaseInfo{
 		GrpID: groupID,
 		PicBucket: "jdk3t-qiye",
 		PicPrefix: "backend_pic/dst/poster/",
-		TableName: "jdk_card_chapter",
+		TableName: filename,
 	}
 	url , err:= QueryCardChapterURL(db, b.GrpID)
 	if nil != err {

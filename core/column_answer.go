@@ -1,10 +1,9 @@
 /*
 @Author : Bruce Bee
-@Date   : 2019/12/24 15:30
+@Date   : 2019/12/27 11:02
 @Email  : mzpy_1119@126.com
 */
-
-// Custom method, mainly through the database to get the URL list
+// package core is ...
 package core
 
 import (
@@ -15,42 +14,46 @@ import (
 	"strings"
 )
 
-// QueryCard , Gets a list of basic data types
-func QueryCard(groupID int64) (Q []BaseInfo) {
-
+// QueryColumnAnswer, Gets a list of basic data types
+func QueryColumnAnswer(groupID int64) (Q []BaseInfo) {
 	db, _ := InitDB()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 	b := BaseInfo{
 		GrpID: groupID,
+		PicBucket: "jdk3t-qiye",
+		PicPrefix: "backend_pic/dst/poster/",
 		VoiceBucket: "jdk3t-voice",
 		VoicePrefix: "backend_voice/",
+		VideoBucket: "jdk3t-video",
+		VideoPrefix: "video/",
 		TableName: filename,
 	}
-	url , err:= QueryCardAnswerURL(db, b.GrpID)
+
+	url , err:= QueryColumnAnswerURL(db, b.GrpID)
 	if nil != err {
 		fmt.Println("error")
 	}
 
 	for _, u := range url {
 		if (u != "") {
-			b.VoiceURL = u
+			b.PicURL = u
 			Q = append(Q, b)
 		}
 	}
 	return
 }
 
-// QueryCardAnswerURL, Get the image URL list data through the database query
-func QueryCardAnswerURL(DB *sql.DB, id int64) (banns []string, err error) {
+// QueryColumnAnswerURL, Get the image URL list data through the database query
+func QueryColumnAnswerURL(DB *sql.DB, id int64) (banns []string, err error) {
 
 	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
 	if err != nil {
 		panic("panic")
 	}
 
-	sql, err := cfg.GetValue("sql","card_answer")
+	sql, err := cfg.GetValue("sql","banner_info")
 	if err != nil {
 		panic("panic")
 	}
@@ -67,4 +70,3 @@ func QueryCardAnswerURL(DB *sql.DB, id int64) (banns []string, err error) {
 	}
 	return
 }
-

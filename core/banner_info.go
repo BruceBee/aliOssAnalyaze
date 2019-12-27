@@ -11,16 +11,21 @@ import (
 	"fmt"
 	"database/sql"
 	"github.com/Unknwon/goconfig"
+	"runtime"
+	"strings"
 )
 
 // QueryBanner, Gets a list of basic data types
 func QueryBanner(groupID int64) (Q []BaseInfo) {
 	db, _ := InitDB()
+	_, file, _, _ := runtime.Caller(0)
+	f := strings.Split(file, "/")
+	filename :=strings.Split(f[len(f)-1], ".")[0]
 	b := BaseInfo{
 		GrpID: groupID,
 		PicBucket: "jdk3t-qiye",
 		PicPrefix: "backend_pic/dst/poster/",
-		TableName: "jdk_banner_info",
+		TableName: filename,
 	}
 
 	url , err:= QueryBannerURL(db, b.GrpID)
@@ -45,7 +50,7 @@ func QueryBannerURL(DB *sql.DB, id int64) (banns []string, err error) {
 		panic("panic")
 	}
 
-	sql, err := cfg.GetValue("sql","banner_sql")
+	sql, err := cfg.GetValue("sql","banner_info")
 	if err != nil {
 		panic("panic")
 	}
