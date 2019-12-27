@@ -15,12 +15,6 @@ import (
 	"strings"
 )
 
-//type CardChapter struct {
-//	Type string `db:"type"`
-//	Key string `db:"key"`
-//	Content CardChapterContent `db:"content"`
-//}
-
 type CardChapter struct {
 	Type string `json:"type"`
 	Key string `json:"key"`
