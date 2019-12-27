@@ -44,32 +44,30 @@ type OSS struct {
 func register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
 
     ban := QueryBanner(groupID)
-    for _, ban_obj := range ban {
-       r <- ban_obj
+    for _, b := range ban {
+       r <- b
     }
 
     card := QueryCard(groupID)
-    for _, card_obj := range card {
-       r <- card_obj
+    for _, c := range card {
+       r <- c
     }
 
-    card_chapter := QueryCardChapter(groupID)
-    for _, card_ch_obj := range card_chapter {
-        r <- card_ch_obj
+    cardChapter := QueryCardChapter(groupID)
+    for _, c := range cardChapter {
+        r <- c
     }
 
-    card_question := QueryCardQuestion(groupID)
-    for _, card_ques_obj := range card_question {
-        r <- card_ques_obj
-    }
-    /*
-    column_question := QueryColumnAnswer(groupID)
-    for _, col_ques_obj := range column_question {
-        fmt.Println(c)
-        //r <- col_ques_obj
+    cardQuestion := QueryCardQuestion(groupID)
+    for _, c := range cardQuestion {
+        r <- c
     }
 
-     */
+    columnQuestion := QueryColumnAnswer(groupID)
+    for _, c := range columnQuestion {
+        r <- c
+    }
+
     wg.Done()
     close(r)
 }
@@ -127,7 +125,7 @@ func (o *OSS) ReturnSize(groupID int64) error {
     time.Sleep(2 * time.Second)
     wg.Wait()
 
-    for t, _ := range totalData {
+    for t := range totalData {
         ts := strconv.Itoa(totalData[t]["totalSize"])
 
         CreateFile(t, partLine + "\n")
@@ -155,17 +153,12 @@ func (o *OSS) sizeCalc(info BaseInfo, fileName string, total map[string]map[stri
 
         bucket, err := o.client.Bucket(info.PicBucket)
         if err != nil {
-            fmt.Println(info)
             fmt.Println("BucketError:", err)
-            fmt.Println(info.PicBucket)
-            fmt.Println(info.PicPrefix + info.PicURL)
             //os.Exit(-1)
         }else {
             props, err := bucket.GetObjectDetailedMeta(info.PicPrefix + info.PicURL)
             if err != nil {
-                fmt.Println(info)
                 fmt.Println("ObjectError:", err)
-                fmt.Println(info.PicPrefix + info.PicURL)
                 //os.Exit(-1)
             }else {
 
@@ -190,73 +183,69 @@ func (o *OSS) sizeCalc(info BaseInfo, fileName string, total map[string]map[stri
             subMapB := make(map[string]int)
             total[info.TableName + "_Voice"] = subMapB
 
-            CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",info.GrpID, info.VoiceBucket,info.VoicePrefix ))
+            CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",info.GrpID, info.VoiceBucket, info.VoicePrefix ))
             CreateFile(fName, partLine + "\n")
 
         }
 
         bucket, err := o.client.Bucket(info.VoiceBucket)
         if err != nil {
-            fmt.Println("Error:", err)
+            fmt.Println("BucketError:", err)
             //os.Exit(-1)
+        }else {
+            props, err := bucket.GetObjectDetailedMeta(info.VoicePrefix + info.VoiceURL)
+            if err != nil {
+                fmt.Println("ObjectError:", err)
+                //os.Exit(-1)
+            }else {
+                Cont := utils.FormatSize(props["Content-Length"][0])
+                ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
+
+                total[info.TableName + "_Voice"]["totalSize"] += ContentLength
+                total[info.TableName + "_Voice"]["totalCount"] ++
+
+                fmt.Printf("%s | %s\n", Cont, info.VoiceURL)
+                CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.VoiceURL))
+            }
         }
-
-        props, err := bucket.GetObjectDetailedMeta(info.VoicePrefix + info.VoiceURL)
-        if err != nil {
-            fmt.Println("Error:", err)
-            //os.Exit(-1)
-        }
-
-        Cont := utils.FormatSize(props["Content-Length"][0])
-        ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
-
-        total[info.TableName + "_Voice"]["totalSize"] += ContentLength
-        total[info.TableName + "_Voice"]["totalCount"] ++
-
-        fmt.Printf("%s | %s\n", Cont, info.VoiceURL)
-        CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.VoiceURL))
     }
 
-    /*
 
     if (info.VideoBucket != "" ){
         fName :=  fmt.Sprintf("%s%s", fileName, "_Video")
-        totalSize := 0
-        totalCount := 0
 
-        bucket, err := o.client.Bucket(ban.VideoBucket)
+        if (total[info.TableName + "_Video"] == nil) {
+            subMapB := make(map[string]int)
+            total[info.TableName + "_Video"] = subMapB
+
+            CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",info.GrpID, info.VideoBucket, info.VideoPrefix ))
+            CreateFile(fName, partLine + "\n")
+
+        }
+
+        bucket, err := o.client.Bucket(info.VideoBucket)
         if err != nil {
-            fmt.Println("Error:", err)
-            os.Exit(-1)
-        }
-
-        CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",ban.GrpID, ban.VideoBucket,ban.VideoPrefix ))
-        CreateFile(fName,partLine + "\n")
-
-        for _, b := range banRes {
-            props, err := bucket.GetObjectDetailedMeta(ban.VideoPrefix + b)
+            fmt.Println("BucketError:", err)
+            //os.Exit(-1)
+        }else {
+            props, err := bucket.GetObjectDetailedMeta(info.VideoPrefix + info.VideoURL)
             if err != nil {
-                fmt.Println("Error:", err)
-                os.Exit(-1)
+                fmt.Println("ObjectError:", err)
+                //os.Exit(-1)
+            }else {
+                Cont := utils.FormatSize(props["Content-Length"][0])
+                ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
+
+                total[info.TableName + "_Video"]["totalSize"] += ContentLength
+                total[info.TableName + "_Video"]["totalCount"] ++
+
+                fmt.Printf("%s | %s\n", Cont, info.VideoURL)
+                CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.VideoURL))
             }
-
-            Cont := utils.FormatSize(props["Content-Length"][0])
-            ContentLength, _ :=  strconv.Atoi(props["Content-Length"][0])
-
-            totalSize += ContentLength
-            totalCount++
-
-            fmt.Printf("%s | %s\n", Cont, b)
-            CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, b))
         }
-
-        t := strconv.Itoa(totalSize)
-
-        CreateFile(fName,partLine + "\n")
-        CreateFile(fName,fmt.Sprintf("Total: FileCount: %d ; FileSize: %s .\n",totalCount, utils.FormatSize(t) ))
-
     }
 
+    /*
     if (info.DocBucket != "" ){
         fName :=  fmt.Sprintf("%s%s", fileName, "_Doc")
         totalSize := 0
