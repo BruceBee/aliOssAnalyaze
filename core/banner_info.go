@@ -4,7 +4,7 @@
 @Email  : mzpy_1119@126.com
 */
 
-// Custom method, mainly through the database to get the URL list
+// Package core is a core custom method, mainly through the database to get the URL list
 package core
 
 import (
@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-// QueryBanner, Gets a list of basic data types
+// QueryBanner for a list of basic data types
 func QueryBanner(groupID int64) (Q []BaseInfo) {
 	db, _ := InitDB()
 	_, file, _, _ := runtime.Caller(0)
@@ -42,7 +42,7 @@ func QueryBanner(groupID int64) (Q []BaseInfo) {
 	return
 }
 
-// QueryBannerURL, Get the image URL list data through the database query
+// QueryBannerURL for the image URL list data through the database query
 func QueryBannerURL(DB *sql.DB, id int64) (banns []string, err error) {
 
 	cfg, err := goconfig.LoadConfigFile("conf/app.ini")

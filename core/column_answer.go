@@ -3,7 +3,7 @@
 @Date   : 2019/12/27 11:02
 @Email  : mzpy_1119@126.com
 */
-// Package core is ...
+// Package core is a core custom method, mainly through the database to get the URL list
 package core
 
 import (
@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-// QueryColumnAnswer, Gets a list of basic data types
+// QueryColumnAnswer is get a list of basic data types
 func QueryColumnAnswer(groupID int64) (Q []BaseInfo) {
 	db, _ := InitDB()
 	_, file, _, _ := runtime.Caller(0)
@@ -54,7 +54,7 @@ func QueryColumnAnswer(groupID int64) (Q []BaseInfo) {
 	return
 }
 
-// QueryColumnAnswerURL, Get the image URL list data through the database query
+// QueryColumnAnswerURL for Get the image URL list data through the database query
 func QueryColumnAnswerURL(DB *sql.DB, id int64) (banns map[string][]string, err error) {
 
 	cfg, err := goconfig.LoadConfigFile("conf/app.ini")

@@ -4,7 +4,7 @@
 @Email  : mzpy_1119@126.com
 */
 
-// Custom method, mainly through the database to get the URL list
+// Package core is a core custom method, mainly through the database to get the URL list
 package core
 
 import (
@@ -42,7 +42,7 @@ func QueryCard(groupID int64) (Q []BaseInfo) {
 	return
 }
 
-// QueryCardAnswerURL, Get the image URL list data through the database query
+// QueryCardAnswerURL for the image URL list data through the database query
 func QueryCardAnswerURL(DB *sql.DB, id int64) (banns []string, err error) {
 
 	cfg, err := goconfig.LoadConfigFile("conf/app.ini")

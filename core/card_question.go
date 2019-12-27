@@ -3,7 +3,7 @@
 @Date   : 2019/12/27 09:49
 @Email  : mzpy_1119@126.com
 */
-// package core is ...
+// Package core is a core custom method, mainly through the database to get the URL list
 package core
 
 import (
@@ -16,6 +16,7 @@ import (
 	"github.com/Unknwon/goconfig"
 )
 
+// CardQuestion...
 type CardQuestion struct {
 	Text string `json:"text"`
 	Notes string `json:"notes"`
@@ -24,6 +25,7 @@ type CardQuestion struct {
 	Voice CardQuestionVoice `json:"voice"` 
 } 
 
+// CardQuestionVoice ...
 type CardQuestionVoice struct {
 	VoiceURL string `json:"voice_url"`
 	VoiceName string `json:"voice_name"`
@@ -31,12 +33,13 @@ type CardQuestionVoice struct {
 	VoiceAvater string `json:"voice_avater"`
 }
 
+// IsEmpty for check sturct is empty
 func (c CardQuestion) IsEmpty() bool {
 	return reflect.DeepEqual(c, CardQuestion{})
 }
 
 
-// QueryCardQuestion , Gets a list of basic data types
+// QueryCardQuestion is get a list of basic data types
 func QueryCardQuestion(groupID int64) (Q []BaseInfo) {
 
 	db, _ := InitDB()
@@ -59,11 +62,11 @@ func QueryCardQuestion(groupID int64) (Q []BaseInfo) {
 		panic("panic")
 	}
 
-	voice_oss, _ := cfg.GetValue("oss-cdn-url","voice_oss")
+	voiceOss, _ := cfg.GetValue("oss-cdn-url","voice_oss")
 
 	for _, u := range url {
 		if (u != "") {
-			b.VoiceURL = strings.Replace(u, voice_oss, "", -1)
+			b.VoiceURL = strings.Replace(u, voiceOss, "", -1)
 			Q = append(Q, b)
 		}
 	}
@@ -71,7 +74,7 @@ func QueryCardQuestion(groupID int64) (Q []BaseInfo) {
 	return
 }
 
-// QueryCardQuestionURL, Get the image URL list data through the database query
+// QueryCardQuestionURL for the image URL list data through the database query
 func QueryCardQuestionURL(DB *sql.DB, id int64) (url []string, err error) {
 
 	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
@@ -91,11 +94,11 @@ func QueryCardQuestionURL(DB *sql.DB, id int64) (url []string, err error) {
 
 	for rows.Next() {
 		var (
-			content_str,
-			item_str string
+			contennStr,
+			itemStr string
 		)
 
-		err := rows.Scan(&content_str, &item_str)
+		err := rows.Scan(&contennStr, &itemStr)
 		if err != nil {
 			fmt.Println(err)
 		}else {
@@ -103,7 +106,7 @@ func QueryCardQuestionURL(DB *sql.DB, id int64) (url []string, err error) {
 				question,
 				item CardQuestion
 			)
-			err = json.Unmarshal([]byte(content_str), &question)
+			err = json.Unmarshal([]byte(contennStr), &question)
 			if err == nil{
 				if !question.IsEmpty(){
 					st := reflect.ValueOf(question)
