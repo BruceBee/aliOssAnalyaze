@@ -118,7 +118,7 @@ func QueryCardQuestionURL(DB *sql.DB, id int64) (url []string, err error) {
 			}
 
 
-			err = json.Unmarshal([]byte(item_str), &item)
+			err = json.Unmarshal([]byte(itemStr), &item)
 			if err == nil{
 				if !item.IsEmpty(){
 					st := reflect.ValueOf(item)
