@@ -94,11 +94,11 @@ func QueryCardQuestionURL(DB *sql.DB, id int64) (url []string, err error) {
 
 	for rows.Next() {
 		var (
-			contennStr,
+			contentStr,
 			itemStr string
 		)
 
-		err := rows.Scan(&contennStr, &itemStr)
+		err := rows.Scan(&contentStr, &itemStr)
 		if err != nil {
 			fmt.Println(err)
 		}else {
@@ -106,7 +106,7 @@ func QueryCardQuestionURL(DB *sql.DB, id int64) (url []string, err error) {
 				question,
 				item CardQuestion
 			)
-			err = json.Unmarshal([]byte(contennStr), &question)
+			err = json.Unmarshal([]byte(contentStr), &question)
 			if err == nil{
 				if !question.IsEmpty(){
 					st := reflect.ValueOf(question)

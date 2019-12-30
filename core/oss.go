@@ -44,11 +44,15 @@ type OSS struct {
 func register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
 
     var registerList []func(groupID int64) []BaseInfo
+
     registerList  = append(registerList, QueryBanner)
     registerList  = append(registerList, QueryCard)
     registerList  = append(registerList, QueryCardChapter)
     registerList  = append(registerList, QueryCardQuestion)
     registerList  = append(registerList, QueryColumnAnswer)
+    registerList  = append(registerList, QueryColumnAnswerRemark)
+    registerList  = append(registerList, QueryColumnCalender)
+    registerList  = append(registerList, QueryColumnChapter)
 
 
     for _, f := range registerList {
