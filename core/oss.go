@@ -43,31 +43,24 @@ type OSS struct {
 // register ...
 func register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
 
-    ban := QueryBanner(groupID)
-    for _, b := range ban {
-       r <- b
-    }
+    var registerList []func(groupID int64) []BaseInfo
 
-    card := QueryCard(groupID)
-    for _, c := range card {
-       r <- c
-    }
+    registerList  = append(registerList, QueryBanner)
+    registerList  = append(registerList, QueryCard)
+    registerList  = append(registerList, QueryCardChapter)
+    registerList  = append(registerList, QueryCardQuestion)
+    registerList  = append(registerList, QueryColumnAnswer)
+    registerList  = append(registerList, QueryColumnAnswerRemark)
+    registerList  = append(registerList, QueryColumnCalender)
+    registerList  = append(registerList, QueryColumnChapter)
 
-    cardChapter := QueryCardChapter(groupID)
-    for _, c := range cardChapter {
-        r <- c
-    }
 
-    cardQuestion := QueryCardQuestion(groupID)
-    for _, c := range cardQuestion {
-        r <- c
+    for _, f := range registerList {
+        res := f(groupID)
+        for _, obj := range res {
+           r <- obj
+        }
     }
-
-    columnQuestion := QueryColumnAnswer(groupID)
-    for _, c := range columnQuestion {
-        r <- c
-    }
-
     wg.Done()
     close(r)
 }
