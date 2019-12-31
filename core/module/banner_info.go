@@ -1,11 +1,11 @@
 /*
 @Author : Bruce Bee
-@Date   : 2019/12/24 15:30
+@Date   : 2019/12/23 17:14
 @Email  : mzpy_1119@126.com
 */
 
-// Package core is a core custom method, mainly through the database to get the URL list
-package core
+// Package module is a core custom method, mainly through the database to get the URL list
+package module
 
 import (
 	"fmt"
@@ -13,44 +13,46 @@ import (
 	"github.com/Unknwon/goconfig"
 	"runtime"
 	"strings"
+	"../base"
+	"../db"
 )
 
-// QueryCard , Gets a list of basic data types
-func QueryCard(groupID int64) (Q []BaseInfo) {
-
-	db, _ := InitDB()
+// QueryBanner for a list of basic data types
+func QueryBanner(groupID int64) (Q []base.BaseInfo) {
+	db, _ := db.InitDB()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
-	b := BaseInfo{
+	b := base.BaseInfo{
 		GrpID: groupID,
-		VoiceBucket: "jdk3t-voice",
-		VoicePrefix: "backend_voice/",
+		PicBucket: "jdk3t-qiye",
+		PicPrefix: "backend_pic/dst/poster/",
 		TableName: filename,
 	}
-	url , err:= QueryCardAnswerURL(db, b.GrpID)
+
+	url , err:= QueryBannerURL(db, b.GrpID)
 	if nil != err {
 		fmt.Println("error")
 	}
 
 	for _, u := range url {
 		if (u != "") {
-			b.VoiceURL = u
+			b.PicURL = u
 			Q = append(Q, b)
 		}
 	}
 	return
 }
 
-// QueryCardAnswerURL for the image URL list data through the database query
-func QueryCardAnswerURL(DB *sql.DB, id int64) (banns []string, err error) {
+// QueryBannerURL for the image URL list data through the database query
+func QueryBannerURL(DB *sql.DB, id int64) (banns []string, err error) {
 
 	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
 	if err != nil {
 		panic("panic")
 	}
 
-	sql, err := cfg.GetValue("sql","card_answer")
+	sql, err := cfg.GetValue("sql","banner_info")
 	if err != nil {
 		panic("panic")
 	}
@@ -67,4 +69,5 @@ func QueryCardAnswerURL(DB *sql.DB, id int64) (banns []string, err error) {
 	}
 	return
 }
+
 

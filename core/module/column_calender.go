@@ -3,8 +3,8 @@
 @Date   : 2019/12/30 16:16
 @Email  : mzpy_1119@126.com
 */
-// package core is ...
-package core
+// package module is ...
+package module
 
 import (
 	"fmt"
@@ -12,16 +12,18 @@ import (
 	"github.com/Unknwon/goconfig"
 	"runtime"
 	"strings"
+	"../base"
+	"../db"
 )
 
 // QueryColumnCalender , Gets a list of basic data types
-func QueryColumnCalender(groupID int64) (Q []BaseInfo) {
+func QueryColumnCalender(groupID int64) (Q []base.BaseInfo) {
 
-	db, _ := InitDB()
+	db, _ := db.InitDB()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
-	b := BaseInfo{
+	b := base.BaseInfo{
 		GrpID: groupID,
 		PicBucket: "jdk3t-qiye",
 		PicPrefix: "backend_pic/dst/poster/",

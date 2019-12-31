@@ -4,7 +4,7 @@
 @Email  : mzpy_1119@126.com
 */
 // package core is ...
-package core
+package module
 
 import (
 	"fmt"
@@ -13,12 +13,14 @@ import (
 	"strings"
 	"database/sql"
 	"github.com/Unknwon/goconfig"
+	"../base"
+	"../db"
 )
 
 // QueryColumnChapter is get a list of basic data types
-func QueryColumnChapter(groupID int64) (Q []BaseInfo) {
+func QueryColumnChapter(groupID int64) (Q []base.BaseInfo) {
 
-	db, _ := InitDB()
+	db, _ := db.InitDB()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
@@ -29,7 +31,7 @@ func QueryColumnChapter(groupID int64) (Q []BaseInfo) {
 	}
 
 	for k, u := range url {
-		b := BaseInfo{
+		b := base.BaseInfo{
 			GrpID: groupID,
 			TableName: filename,
 		}

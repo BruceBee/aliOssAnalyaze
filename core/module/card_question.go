@@ -4,7 +4,7 @@
 @Email  : mzpy_1119@126.com
 */
 // Package core is a core custom method, mainly through the database to get the URL list
-package core
+package module
 
 import (
 	"fmt"
@@ -14,6 +14,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"github.com/Unknwon/goconfig"
+	"../base"
+	"../db"
 )
 
 // CardQuestion...
@@ -40,13 +42,13 @@ func (c CardQuestion) IsEmpty() bool {
 
 
 // QueryCardQuestion is get a list of basic data types
-func QueryCardQuestion(groupID int64) (Q []BaseInfo) {
+func QueryCardQuestion(groupID int64) (Q []base.BaseInfo) {
 
-	db, _ := InitDB()
+	db, _ := db.InitDB()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
-	b := BaseInfo{
+	b := base.BaseInfo{
 		GrpID: groupID,
 		VoiceBucket: "jdk3t-voice",
 		VoicePrefix: "backend_voice/",
