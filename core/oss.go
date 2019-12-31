@@ -56,6 +56,15 @@ func register(groupID int64, r chan <- base.BaseInfo, wg *sync.WaitGroup){
     registerList  = append(registerList, module.QueryColumnAnswerRemark)
     registerList  = append(registerList, module.QueryColumnCalender)
     registerList  = append(registerList, module.QueryColumnChapter)
+    registerList  = append(registerList, module.QueryEvalVoice)
+    registerList  = append(registerList, module.QueryColumnModule)
+    registerList  = append(registerList, module.QueryColumnQuestion)
+    registerList  = append(registerList, module.QueryColumnSubmit)
+    registerList  = append(registerList, module.QueryComment)
+    registerList  = append(registerList, module.QueryCourse)
+    registerList  = append(registerList, module.QueryCourseActivity)
+    registerList  = append(registerList, module.QueryCourseAnswer)
+    registerList  = append(registerList, module.QueryCourseCalender)
 
 
     for _, f := range registerList {
@@ -208,7 +217,6 @@ func (o *OSS) sizeCalc(info base.BaseInfo, fileName string, total map[string]map
 
 
     if (info.VideoBucket != "" ){
-        fmt.Println(info.VideoURL)
         fName :=  fmt.Sprintf("%s%s", fileName, "_Video")
 
         if (total[info.TableName + "_Video"] == nil) {
