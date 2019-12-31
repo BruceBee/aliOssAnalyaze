@@ -45,13 +45,13 @@ func register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
 
     var registerList []func(groupID int64) []BaseInfo
 
-    registerList  = append(registerList, QueryBanner)
-    registerList  = append(registerList, QueryCard)
-    registerList  = append(registerList, QueryCardChapter)
-    registerList  = append(registerList, QueryCardQuestion)
-    registerList  = append(registerList, QueryColumnAnswer)
-    registerList  = append(registerList, QueryColumnAnswerRemark)
-    registerList  = append(registerList, QueryColumnCalender)
+    //registerList  = append(registerList, QueryBanner)
+    //registerList  = append(registerList, QueryCard)
+    //registerList  = append(registerList, QueryCardChapter)
+    //registerList  = append(registerList, QueryCardQuestion)
+    //registerList  = append(registerList, QueryColumnAnswer)
+    //registerList  = append(registerList, QueryColumnAnswerRemark)
+    //registerList  = append(registerList, QueryColumnCalender)
     registerList  = append(registerList, QueryColumnChapter)
 
 
@@ -205,6 +205,7 @@ func (o *OSS) sizeCalc(info BaseInfo, fileName string, total map[string]map[stri
 
 
     if (info.VideoBucket != "" ){
+        fmt.Println(info.VideoURL)
         fName :=  fmt.Sprintf("%s%s", fileName, "_Video")
 
         if (total[info.TableName + "_Video"] == nil) {
@@ -232,52 +233,46 @@ func (o *OSS) sizeCalc(info BaseInfo, fileName string, total map[string]map[stri
                 total[info.TableName + "_Video"]["totalSize"] += ContentLength
                 total[info.TableName + "_Video"]["totalCount"] ++
 
-                fmt.Printf("%s | %s\n", Cont, info.VideoURL)
+                //fmt.Printf("%s | %s\n", Cont, info.VideoURL)
                 CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.VideoURL))
             }
         }
     }
 
-    /*
+
     if (info.DocBucket != "" ){
         fName :=  fmt.Sprintf("%s%s", fileName, "_Doc")
-        totalSize := 0
-        totalCount := 0
 
-        bucket, err := o.client.Bucket(ban.DocBucket)
-        if err != nil {
-            fmt.Println("Error:", err)
-            os.Exit(-1)
-        }
+		if (total[info.TableName + "_Doc"] == nil) {
+			subMapB := make(map[string]int)
+			total[info.TableName + "_Doc"] = subMapB
 
-        CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",ban.GrpID, ban.DocBucket,ban.DocPrefix ))
-        CreateFile(fName,partLine + "\n")
+			CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",info.GrpID, info.DocBucket, info.DocPrefix ))
+			CreateFile(fName, partLine + "\n")
 
-        for _, b := range banRes {
-            props, err := bucket.GetObjectDetailedMeta(ban.DocPrefix + b)
-            if err != nil {
-                fmt.Println("Error:", err)
-                os.Exit(-1)
-            }
+		}
 
-            Cont := utils.FormatSize(props["Content-Length"][0])
-            ContentLength, _ :=  strconv.Atoi(props["Content-Length"][0])
+        bucket, err := o.client.Bucket(info.DocBucket)
+		if err != nil {
+			fmt.Println("BucketError:", err)
+			//os.Exit(-1)
+		}else {
+			props, err := bucket.GetObjectDetailedMeta(info.DocPrefix + info.DocURL)
+			if err != nil {
+				fmt.Println("ObjectError:", err)
+				//os.Exit(-1)
+			}else {
+				Cont := utils.FormatSize(props["Content-Length"][0])
+				ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
 
-            totalSize += ContentLength
-            totalCount++
+				total[info.TableName + "_Video"]["totalSize"] += ContentLength
+				total[info.TableName + "_Video"]["totalCount"] ++
 
-            fmt.Printf("%s | %s\n", Cont, b)
-            CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, b))
-        }
-
-        t := strconv.Itoa(totalSize)
-
-        CreateFile(fName,partLine + "\n")
-        CreateFile(fName,fmt.Sprintf("Total: FileCount: %d ; FileSize: %s .\n",totalCount, utils.FormatSize(t) ))
-
+				//fmt.Printf("%s | %s\n", Cont, info.DocURL)
+				CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.DocURL))
+			}
+		}
     }
-
-     */
 }
 
 // ListFile ...

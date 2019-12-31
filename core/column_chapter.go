@@ -22,27 +22,39 @@ func QueryColumnChapter(groupID int64) (Q []BaseInfo) {
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
-	b := BaseInfo{
-		GrpID: groupID,
-		VoiceBucket: "jdk3t-voice",
-		VoicePrefix: "backend_voice/",
-		TableName: filename,
-	}
-	url , err:= QueryColumnChapterURL(db, b.GrpID)
+
+	url , err:= QueryColumnChapterURL(db, groupID)
 	if nil != err {
 		fmt.Println("error")
 	}
 
-	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
-	if err != nil {
-		panic("panic")
-	}
+	for k, u := range url {
+		b := BaseInfo{
+			GrpID: groupID,
+			TableName: filename,
+		}
 
-	voiceOss, _ := cfg.GetValue("oss-cdn-url","voice_oss")
-
-	for _, u := range url {
-		if (u != "") {
-			b.VoiceURL = strings.Replace(u, voiceOss, "", -1)
+		for _, x := range u {
+			switch k {
+			case "pic":
+				b.PicBucket = "jdk3t-qiye"
+				b.PicPrefix = "backend_pic/dst/poster/"
+				b.PicURL = x
+			case "voice":
+				b.VoiceURL = x
+				b.VoiceBucket ="jdk3t-voice"
+				b.VoicePrefix = "backend_voice/"
+			case "video":
+				b.VideoURL = x
+				b.VideoBucket ="jdk3t-video"
+				b.VideoPrefix = "video/"
+			case "doc":
+				b.DocURL = x
+				b.DocBucket ="jdk3t-doc"
+				b.DocPrefix = "document/"
+			default:
+				fmt.Println("err: no type")
+			}
 			Q = append(Q, b)
 		}
 	}
@@ -51,7 +63,7 @@ func QueryColumnChapter(groupID int64) (Q []BaseInfo) {
 }
 
 // QueryColumnChapterURL for the image URL list data through the database query
-func QueryColumnChapterURL(DB *sql.DB, id int64) (url []string, err error) {
+func QueryColumnChapterURL(DB *sql.DB, id int64) (banns map[string][]string, err error) {
 
 	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
 	if err != nil {
@@ -68,6 +80,19 @@ func QueryColumnChapterURL(DB *sql.DB, id int64) (url []string, err error) {
 		fmt.Println("QueryRow Error", err)
 	}
 
+	banns = make(map[string][]string)
+	var (
+		pp ,
+		vi ,
+		vo ,
+		doc []string
+	)
+
+	qiyeOss, _ := cfg.GetValue("oss-cdn-url","qiye_oss")
+	videoOss, _ := cfg.GetValue("oss-cdn-url","video_oss")
+	voiceOss, _ := cfg.GetValue("oss-cdn-url","voice_oss")
+	docOss, _ := cfg.GetValue("oss-cdn-url","doc_oss")
+
 	for rows.Next() {
 		var contentStr string
 
@@ -80,11 +105,39 @@ func QueryColumnChapterURL(DB *sql.DB, id int64) (url []string, err error) {
 			c := r.FindAllString(contentStr,-1)
 
 			for _, x := range c {
-				fmt.Println(x)
+
+				st1 := strings.HasPrefix(x, qiyeOss)
+				if st1 {
+					u := strings.Replace(x, qiyeOss, "", -1)
+					pp = append(pp, u)
+				}
+
+				st2 := strings.HasPrefix(x, videoOss)
+				if st2 {
+					u := strings.Replace(x, videoOss, "", -1)
+					vi = append(vi, u)
+				}
+
+				st3 := strings.HasPrefix(x, voiceOss)
+				if st3 {
+					u := strings.Replace(x, voiceOss, "", -1)
+					vo = append(vo, u)
+				}
+
+				st4 := strings.HasPrefix(x, docOss)
+				if st4 {
+					u := strings.Replace(x, docOss, "", -1)
+					doc = append(doc, u)
+				}
 			}
 
 		}
 	}
+
+	banns["pic"] = pp
+	banns["video"] = vi
+	banns["voice"] = vo
+	banns["doc"] = doc
 
 	return
 }
