@@ -4,7 +4,7 @@
 @Email  : mzpy_1119@126.com
 */
 
-package core
+package write
 
 import (
 	"bufio"

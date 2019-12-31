@@ -19,6 +19,9 @@ package core
 
 import (
     "../utils"
+    "./base"
+    "./module"
+    "./write"
     "os"
     "strconv"
     "sync"
@@ -31,7 +34,7 @@ import (
 // Osser ...
 type Osser interface {
     ReturnSize(int64) error
-    sizeCalc(BaseInfo, string, map[string]map[string]int)
+    sizeCalc(base.BaseInfo, string, map[string]map[string]int)
     ListFile()
 }
 
@@ -41,18 +44,27 @@ type OSS struct {
 }
 
 // register ...
-func register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
+func register(groupID int64, r chan <- base.BaseInfo, wg *sync.WaitGroup){
 
-    var registerList []func(groupID int64) []BaseInfo
+    var registerList []func(groupID int64) []base.BaseInfo
 
-    registerList  = append(registerList, QueryBanner)
-    registerList  = append(registerList, QueryCard)
-    registerList  = append(registerList, QueryCardChapter)
-    registerList  = append(registerList, QueryCardQuestion)
-    registerList  = append(registerList, QueryColumnAnswer)
-    registerList  = append(registerList, QueryColumnAnswerRemark)
-    registerList  = append(registerList, QueryColumnCalender)
-    registerList  = append(registerList, QueryColumnChapter)
+    registerList  = append(registerList, module.QueryBanner)
+    registerList  = append(registerList, module.QueryCard)
+    registerList  = append(registerList, module.QueryCardChapter)
+    registerList  = append(registerList, module.QueryCardQuestion)
+    registerList  = append(registerList, module.QueryColumnAnswer)
+    registerList  = append(registerList, module.QueryColumnAnswerRemark)
+    registerList  = append(registerList, module.QueryColumnCalender)
+    registerList  = append(registerList, module.QueryColumnChapter)
+    registerList  = append(registerList, module.QueryEvalVoice)
+    registerList  = append(registerList, module.QueryColumnModule)
+    registerList  = append(registerList, module.QueryColumnQuestion)
+    registerList  = append(registerList, module.QueryColumnSubmit)
+    registerList  = append(registerList, module.QueryComment)
+    registerList  = append(registerList, module.QueryCourse)
+    registerList  = append(registerList, module.QueryCourseActivity)
+    registerList  = append(registerList, module.QueryCourseAnswer)
+    registerList  = append(registerList, module.QueryCourseCalender)
 
 
     for _, f := range registerList {
@@ -67,7 +79,7 @@ func register(groupID int64, r chan <- BaseInfo, wg *sync.WaitGroup){
 
 
 // fileCalc ...
-func fileCalc(groupID int64, fc <- chan BaseInfo, wg *sync.WaitGroup, o *OSS, total map[string]map[string]int){
+func fileCalc(groupID int64, fc <- chan base.BaseInfo, wg *sync.WaitGroup, o *OSS, total map[string]map[string]int){
 
     for {
        fileObj := <- fc
@@ -110,7 +122,7 @@ func (o *OSS) ReturnSize(groupID int64) error {
 
     totalData := map[string]map[string]int{}
     wg := &sync.WaitGroup{}
-    ch := make(chan BaseInfo, 1000)
+    ch := make(chan base.BaseInfo, 1000)
     wg.Add(2)
     go register(groupID, ch, wg)
     go fileCalc(groupID, ch, wg, o, totalData)
@@ -121,14 +133,14 @@ func (o *OSS) ReturnSize(groupID int64) error {
     for t := range totalData {
         ts := strconv.Itoa(totalData[t]["totalSize"])
 
-        CreateFile(t, partLine + "\n")
-        CreateFile(t, fmt.Sprintf("Total: FileCount: %d ; FileSize: %s .\n",totalData[t]["totalCount"], utils.FormatSize(ts) ))
+        write.CreateFile(t, partLine + "\n")
+        write.CreateFile(t, fmt.Sprintf("Total: FileCount: %d ; FileSize: %s .\n",totalData[t]["totalCount"], utils.FormatSize(ts) ))
     }
     return nil
 }
 
 // SizeCalc ...
-func (o *OSS) sizeCalc(info BaseInfo, fileName string, total map[string]map[string]int){
+func (o *OSS) sizeCalc(info base.BaseInfo, fileName string, total map[string]map[string]int){
 
     partLine := partLine()
 
@@ -139,8 +151,8 @@ func (o *OSS) sizeCalc(info BaseInfo, fileName string, total map[string]map[stri
             subMapB := make(map[string]int)
             total[info.TableName + "_Pic"] = subMapB
 
-            CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",info.GrpID, info.PicBucket,info.PicPrefix ))
-            CreateFile(fName,partLine + "\n")
+            write.CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",info.GrpID, info.PicBucket,info.PicPrefix ))
+            write.CreateFile(fName,partLine + "\n")
 
         }
 
@@ -162,7 +174,7 @@ func (o *OSS) sizeCalc(info BaseInfo, fileName string, total map[string]map[stri
                 total[info.TableName+"_Pic"]["totalCount"] ++
 
                 fmt.Printf("%s | %s\n", Cont, info.PicURL)
-                CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.PicURL))
+                write.CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.PicURL))
             }
 
         }
@@ -176,8 +188,8 @@ func (o *OSS) sizeCalc(info BaseInfo, fileName string, total map[string]map[stri
             subMapB := make(map[string]int)
             total[info.TableName + "_Voice"] = subMapB
 
-            CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",info.GrpID, info.VoiceBucket, info.VoicePrefix ))
-            CreateFile(fName, partLine + "\n")
+            write.CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",info.GrpID, info.VoiceBucket, info.VoicePrefix ))
+            write.CreateFile(fName, partLine + "\n")
 
         }
 
@@ -198,7 +210,7 @@ func (o *OSS) sizeCalc(info BaseInfo, fileName string, total map[string]map[stri
                 total[info.TableName + "_Voice"]["totalCount"] ++
 
                 fmt.Printf("%s | %s\n", Cont, info.VoiceURL)
-                CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.VoiceURL))
+                write.CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.VoiceURL))
             }
         }
     }
@@ -211,8 +223,8 @@ func (o *OSS) sizeCalc(info BaseInfo, fileName string, total map[string]map[stri
             subMapB := make(map[string]int)
             total[info.TableName + "_Video"] = subMapB
 
-            CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",info.GrpID, info.VideoBucket, info.VideoPrefix ))
-            CreateFile(fName, partLine + "\n")
+            write.CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",info.GrpID, info.VideoBucket, info.VideoPrefix ))
+            write.CreateFile(fName, partLine + "\n")
 
         }
 
@@ -233,51 +245,45 @@ func (o *OSS) sizeCalc(info BaseInfo, fileName string, total map[string]map[stri
                 total[info.TableName + "_Video"]["totalCount"] ++
 
                 fmt.Printf("%s | %s\n", Cont, info.VideoURL)
-                CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.VideoURL))
+                write.CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.VideoURL))
             }
         }
     }
 
-    /*
+
     if (info.DocBucket != "" ){
         fName :=  fmt.Sprintf("%s%s", fileName, "_Doc")
-        totalSize := 0
-        totalCount := 0
 
-        bucket, err := o.client.Bucket(ban.DocBucket)
-        if err != nil {
-            fmt.Println("Error:", err)
-            os.Exit(-1)
-        }
+		if (total[info.TableName + "_Doc"] == nil) {
+			subMapB := make(map[string]int)
+			total[info.TableName + "_Doc"] = subMapB
 
-        CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",ban.GrpID, ban.DocBucket,ban.DocPrefix ))
-        CreateFile(fName,partLine + "\n")
+            write.CreateFile(fName, fmt.Sprintf("GroupID: %d ; Bucket: %s ; Path: %s\n",info.GrpID, info.DocBucket, info.DocPrefix ))
+            write.CreateFile(fName, partLine + "\n")
 
-        for _, b := range banRes {
-            props, err := bucket.GetObjectDetailedMeta(ban.DocPrefix + b)
-            if err != nil {
-                fmt.Println("Error:", err)
-                os.Exit(-1)
-            }
+		}
 
-            Cont := utils.FormatSize(props["Content-Length"][0])
-            ContentLength, _ :=  strconv.Atoi(props["Content-Length"][0])
+        bucket, err := o.client.Bucket(info.DocBucket)
+		if err != nil {
+			fmt.Println("BucketError:", err)
+			//os.Exit(-1)
+		}else {
+			props, err := bucket.GetObjectDetailedMeta(info.DocPrefix + info.DocURL)
+			if err != nil {
+				fmt.Println("ObjectError:", err)
+				//os.Exit(-1)
+			}else {
+				Cont := utils.FormatSize(props["Content-Length"][0])
+				ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
 
-            totalSize += ContentLength
-            totalCount++
+				total[info.TableName + "_Video"]["totalSize"] += ContentLength
+				total[info.TableName + "_Video"]["totalCount"] ++
 
-            fmt.Printf("%s | %s\n", Cont, b)
-            CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, b))
-        }
-
-        t := strconv.Itoa(totalSize)
-
-        CreateFile(fName,partLine + "\n")
-        CreateFile(fName,fmt.Sprintf("Total: FileCount: %d ; FileSize: %s .\n",totalCount, utils.FormatSize(t) ))
-
+				fmt.Printf("%s | %s\n", Cont, info.DocURL)
+                write.CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.DocURL))
+			}
+		}
     }
-
-     */
 }
 
 // ListFile ...

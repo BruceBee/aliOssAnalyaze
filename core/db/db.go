@@ -5,7 +5,7 @@
 */
 
 // Package core ...
-package core
+package db
 
 import (
     "database/sql"

@@ -1,10 +1,11 @@
 /*
 @Author : Bruce Bee
-@Date   : 2019/12/30 16:16
+@Date   : 2019/12/31 10:45
 @Email  : mzpy_1119@126.com
 */
-// package core is ...
-package core
+
+// Package module is a core custom method, mainly through the database to get the URL list
+package module
 
 import (
 	"fmt"
@@ -12,22 +13,24 @@ import (
 	"github.com/Unknwon/goconfig"
 	"runtime"
 	"strings"
+	"../base"
+	"../db"
 )
 
-// QueryColumnCalender , Gets a list of basic data types
-func QueryColumnCalender(groupID int64) (Q []BaseInfo) {
-
-	db, _ := InitDB()
+// QueryEvalVoice for a list of basic data types
+func QueryEvalVoice(groupID int64) (Q []base.BaseInfo) {
+	db, _ := db.InitDB()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
-	b := BaseInfo{
+	b := base.BaseInfo{
 		GrpID: groupID,
-		PicBucket: "jdk3t-qiye",
-		PicPrefix: "backend_pic/dst/poster/",
+		PicBucket: "jdk3t-voice",
+		PicPrefix: "backend_voice/",
 		TableName: filename,
 	}
-	url , err:= QueryColumnCalenderURL(db, b.GrpID)
+
+	url , err:= QueryEvalVoiceURL(db, b.GrpID)
 	if nil != err {
 		fmt.Println("error")
 	}
@@ -41,15 +44,15 @@ func QueryColumnCalender(groupID int64) (Q []BaseInfo) {
 	return
 }
 
-// QueryColumnCalenderURL for the image URL list data through the database query
-func QueryColumnCalenderURL(DB *sql.DB, id int64) (banns []string, err error) {
+// QueryEvalVoiceURL for the image URL list data through the database query
+func QueryEvalVoiceURL(DB *sql.DB, id int64) (banns []string, err error) {
 
 	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
 	if err != nil {
 		panic("panic")
 	}
 
-	sql, err := cfg.GetValue("sql","column_calendar")
+	sql, err := cfg.GetValue("sql","column_eval_voice")
 	if err != nil {
 		panic("panic")
 	}
@@ -66,5 +69,6 @@ func QueryColumnCalenderURL(DB *sql.DB, id int64) (banns []string, err error) {
 	}
 	return
 }
+
 
 

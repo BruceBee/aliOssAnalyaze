@@ -1,10 +1,11 @@
 /*
 @Author : Bruce Bee
-@Date   : 2019/12/30 15:49
+@Date   : 2019/12/31 10:48
 @Email  : mzpy_1119@126.com
 */
-// package core is ...
-package core
+
+// Package module is a core custom method, mainly through the database to get the URL list
+package module
 
 import (
 	"fmt"
@@ -12,21 +13,24 @@ import (
 	"github.com/Unknwon/goconfig"
 	"runtime"
 	"strings"
+	"../base"
+	"../db"
 )
 
-// QueryColumnAnswerRemark is get a list of basic data types
-func QueryColumnAnswerRemark(groupID int64) (Q []BaseInfo) {
-	db, _ := InitDB()
+// QueryCourseAnswer for a list of basic data types
+func QueryCourseAnswer(groupID int64) (Q []base.BaseInfo) {
+	db, _ := db.InitDB()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
-	url , err:= QueryColumnAnswerRemarkURL(db, groupID)
+
+	url , err:= QueryCourseAnswerURL(db, groupID)
 	if nil != err {
 		fmt.Println("error")
 	}
 
 	for k, u := range url {
-		b := BaseInfo{
+		b := base.BaseInfo{
 			GrpID: groupID,
 			TableName: filename,
 		}
@@ -37,6 +41,10 @@ func QueryColumnAnswerRemark(groupID int64) (Q []BaseInfo) {
 				b.PicBucket = "jdk3t-qiye"
 				b.PicPrefix = "backend_pic/dst/poster/"
 				b.PicURL = x
+			case "video":
+				b.VideoURL = x
+				b.VideoBucket ="jdk3t-video"
+				b.VideoPrefix = "video/"
 			case "voice":
 				b.VoiceURL = x
 				b.VoiceBucket ="jdk3t-voice"
@@ -50,18 +58,19 @@ func QueryColumnAnswerRemark(groupID int64) (Q []BaseInfo) {
 	return
 }
 
-// QueryColumnAnswerRemarkURL for Get the image URL list data through the database query
-func QueryColumnAnswerRemarkURL(DB *sql.DB, id int64) (banns map[string][]string, err error) {
+// QueryCourseAnswerURL for the image URL list data through the database query
+func QueryCourseAnswerURL(DB *sql.DB, id int64) (banns map[string][]string, err error) {
 
 	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
 	if err != nil {
 		panic("panic")
 	}
 
-	sql, err := cfg.GetValue("sql","column_answer_remark")
+	sql, err := cfg.GetValue("sql","course_answer")
 	if err != nil {
 		panic("panic")
 	}
+
 
 	rows, err := DB.Query(sql, id)
 	if nil != err {
@@ -71,15 +80,17 @@ func QueryColumnAnswerRemarkURL(DB *sql.DB, id int64) (banns map[string][]string
 	banns = make(map[string][]string)
 	var (
 		pp ,
+		vi ,
 		vo []string
 	)
 
 	for rows.Next() {
 		var (
 			pic,
+			video,
 			voice string
 		)
-		err :=rows.Scan(&pic, &voice)
+		err :=rows.Scan(&pic, &video, &voice)
 		if err != nil {
 			fmt.Println(err)
 		}else {
@@ -88,6 +99,16 @@ func QueryColumnAnswerRemarkURL(DB *sql.DB, id int64) (banns map[string][]string
 				for _, x := range p {
 					if (x != ""){
 						pp = append(pp, x)
+					}
+
+				}
+			}
+
+			if (video != ""){
+				v := strings.Split(video, "|")
+				for _, x := range v {
+					if (x != ""){
+						vi = append(vi, x)
 					}
 
 				}
@@ -106,6 +127,7 @@ func QueryColumnAnswerRemarkURL(DB *sql.DB, id int64) (banns map[string][]string
 	}
 
 	banns["pic"] = pp
+	banns["video"] = vi
 	banns["voice"] = vo
 
 	return
