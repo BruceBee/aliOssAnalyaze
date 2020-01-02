@@ -16,6 +16,7 @@ import (
 	"github.com/Unknwon/goconfig"
 	"../base"
 	"../db"
+	"../../utils"
 )
 
 // QueryColumnModule is get a list of basic data types
@@ -68,6 +69,8 @@ func QueryColumnModule(groupID int64) (Q []base.BaseInfo) {
 // QueryColumnModuleURL for the image URL list data through the database query
 func QueryColumnModuleURL(DB *sql.DB, id int64) (banns map[string][]string, err error) {
 
+	fileRegexp := utils.FileRegexp()
+
 	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
 	if err != nil {
 		panic("panic")
@@ -106,9 +109,8 @@ func QueryColumnModuleURL(DB *sql.DB, id int64) (banns map[string][]string, err 
 		if err != nil {
 			fmt.Println(err)
 		}else {
-			r := regexp.MustCompile("https://([^:]*?)\\.(mp3|mp4|png|docx|jpg|pptx|gif|doc|pdf)")
 
-			c := r.FindAllString(pcContent,-1)
+			c := fileRegexp.FindAllString(pcContent,-1)
 
 			for _, x := range c {
 

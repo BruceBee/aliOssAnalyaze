@@ -1,6 +1,6 @@
 /*
 @Author : Bruce Bee
-@Date   : 2019/12/31 10:45
+@Date   : 2020/1/2 10:29
 @Email  : mzpy_1119@126.com
 */
 
@@ -17,20 +17,20 @@ import (
 	"../db"
 )
 
-// QueryColumnEvalVoice for a list of basic data types
-func QueryColumnEvalVoice(groupID int64) (Q []base.BaseInfo) {
+// QueryCourseMedia for a list of basic data types
+func QueryCourseMedia(groupID int64) (Q []base.BaseInfo) {
 	db, _ := db.InitDB()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 	b := base.BaseInfo{
 		GrpID: groupID,
-		PicBucket: "jdk3t-voice",
-		PicPrefix: "backend_voice/",
+		PicBucket: "jdk3t-qiye",
+		PicPrefix: "backend_pic/dst/poster/",
 		TableName: filename,
 	}
 
-	url , err:= QueryColumnEvalVoiceURL(db, b.GrpID)
+	url , err:= QueryCourseMediaURL(db, b.GrpID)
 	if nil != err {
 		fmt.Println("error")
 	}
@@ -44,15 +44,15 @@ func QueryColumnEvalVoice(groupID int64) (Q []base.BaseInfo) {
 	return
 }
 
-// QueryColumnEvalVoiceURL for the image URL list data through the database query
-func QueryColumnEvalVoiceURL(DB *sql.DB, id int64) (banns []string, err error) {
+// QueryCourseMediaURL for the image URL list data through the database query
+func QueryCourseMediaURL(DB *sql.DB, id int64) (banns []string, err error) {
 
 	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
 	if err != nil {
 		panic("panic")
 	}
 
-	sql, err := cfg.GetValue("sql","column_eval_voice")
+	sql, err := cfg.GetValue("sql","course_media")
 	if err != nil {
 		panic("panic")
 	}
@@ -63,12 +63,21 @@ func QueryColumnEvalVoiceURL(DB *sql.DB, id int64) (banns []string, err error) {
 	}
 
 	for rows.Next() {
-		var bann string
-		rows.Scan(&bann)
-		banns = append(banns, bann)
+		var (
+			miniPic ,
+			pic string
+		)
+		rows.Scan(&miniPic, &pic)
+
+		if(miniPic != ""){
+			banns = append(banns, miniPic)
+		}
+
+		if(pic != ""){
+			banns = append(banns, pic)
+		}
 	}
 	return
 }
-
 
 

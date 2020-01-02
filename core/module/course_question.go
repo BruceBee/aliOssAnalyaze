@@ -1,9 +1,8 @@
 /*
 @Author : Bruce Bee
-@Date   : 2019/12/31 10:47
+@Date   : 2020/1/2 10:29
 @Email  : mzpy_1119@126.com
 */
-
 // package core is ...
 package module
 
@@ -18,20 +17,21 @@ import (
 	"../../utils"
 )
 
-type columnQuData struct{
-	qsContent sql.NullString
-	items sql.NullString
+type quData struct{
+	quContent sql.NullString
+	item sql.NullString
+	analy sql.NullString
 }
 
-// QueryColumnQuestion is get a list of basic data types
-func QueryColumnQuestion(groupID int64) (Q []base.BaseInfo) {
+// QueryCourseQuestion is get a list of basic data types
+func QueryCourseQuestion(groupID int64) (Q []base.BaseInfo) {
 
 	db, _ := db.InitDB()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 
-	url , err:= QueryColumnQuestionURL(db, groupID)
+	url , err:= QueryCourseQuestionURL(db, groupID)
 	if nil != err {
 		fmt.Println("error")
 	}
@@ -70,8 +70,8 @@ func QueryColumnQuestion(groupID int64) (Q []base.BaseInfo) {
 	return
 }
 
-// QueryColumnQuestionURL for the image URL list data through the database query
-func QueryColumnQuestionURL(DB *sql.DB, id int64) (banns map[string][]string, err error) {
+// QueryCourseQuestionURL for the image URL list data through the database query
+func QueryCourseQuestionURL(DB *sql.DB, id int64) (banns map[string][]string, err error) {
 
 	fileRegexp := utils.FileRegexp()
 
@@ -80,7 +80,7 @@ func QueryColumnQuestionURL(DB *sql.DB, id int64) (banns map[string][]string, er
 		panic("panic")
 	}
 
-	sql, err := cfg.GetValue("sql","column_question")
+	sql, err := cfg.GetValue("sql","course_question")
 	if err != nil {
 		panic("panic")
 	}
@@ -103,27 +103,32 @@ func QueryColumnQuestionURL(DB *sql.DB, id int64) (banns map[string][]string, er
 	voiceOss, _ := cfg.GetValue("oss-cdn-url","voice_oss")
 	docOss, _ := cfg.GetValue("oss-cdn-url","doc_oss")
 
-	var cloqu columnQuData
+	var qu quData
 	for rows.Next() {
-		var (
-			qsContent,
-			items string
-		)
 
-		err := rows.Scan(&cloqu.qsContent, &cloqu.items)
+		var (
+			quContent ,
+			item,
+			analy string
+		)
+		err := rows.Scan(&qu.quContent, &qu.item, &qu.analy)
+
 		if err != nil {
 			fmt.Println(err)
 		}else {
-
-			if cloqu.qsContent.Valid {
-				qsContent = cloqu.qsContent.String
+			if qu.quContent.Valid {
+				quContent = qu.quContent.String
 			}
 
-			if cloqu.items.Valid {
-				items = cloqu.items.String
+			if qu.item.Valid {
+				item = qu.item.String
 			}
 
-			for _, x := range []string{qsContent, items}{
+			if qu.analy.Valid {
+				analy = qu.analy.String
+			}
+
+			for _, x := range []string{quContent, item, analy}{
 				if (x != ""){
 					c := fileRegexp.FindAllString(x,-1)
 					if (len(c) != 0){
@@ -155,6 +160,7 @@ func QueryColumnQuestionURL(DB *sql.DB, id int64) (banns map[string][]string, er
 					}
 				}
 			}
+
 		}
 	}
 
@@ -165,3 +171,5 @@ func QueryColumnQuestionURL(DB *sql.DB, id int64) (banns map[string][]string, er
 
 	return
 }
+
+

@@ -9,13 +9,13 @@ package module
 
 import (
 	"fmt"
-	"regexp"
 	"runtime"
 	"strings"
 	"database/sql"
 	"github.com/Unknwon/goconfig"
 	"../base"
 	"../db"
+	"../../utils"
 )
 
 // QueryColumnChapter is get a list of basic data types
@@ -68,6 +68,8 @@ func QueryColumnChapter(groupID int64) (Q []base.BaseInfo) {
 // QueryColumnChapterURL for the image URL list data through the database query
 func QueryColumnChapterURL(DB *sql.DB, id int64) (banns map[string][]string, err error) {
 
+	fileRegexp := utils.FileRegexp()
+
 	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
 	if err != nil {
 		panic("panic")
@@ -103,9 +105,7 @@ func QueryColumnChapterURL(DB *sql.DB, id int64) (banns map[string][]string, err
 		if err != nil {
 			fmt.Println(err)
 		}else {
-			r := regexp.MustCompile("https://([^:]*?)\\.(mp3|mp4|png|docx|jpg|pptx|gif|doc|pdf)")
-
-			c := r.FindAllString(contentStr,-1)
+			c := fileRegexp.FindAllString(contentStr,-1)
 
 			for _, x := range c {
 

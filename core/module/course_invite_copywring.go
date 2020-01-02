@@ -1,6 +1,6 @@
 /*
 @Author : Bruce Bee
-@Date   : 2019/12/31 10:47
+@Date   : 2020/1/2 10:28
 @Email  : mzpy_1119@126.com
 */
 
@@ -18,20 +18,20 @@ import (
 	"../../utils"
 )
 
-type columnQuData struct{
-	qsContent sql.NullString
-	items sql.NullString
+type inviteData struct{
+	tripContent sql.NullString
+	tripQrCode sql.NullString
 }
 
-// QueryColumnQuestion is get a list of basic data types
-func QueryColumnQuestion(groupID int64) (Q []base.BaseInfo) {
+// QueryCourseInviteCopywring is get a list of basic data types
+func QueryCourseInviteCopywring(groupID int64) (Q []base.BaseInfo) {
 
 	db, _ := db.InitDB()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 
-	url , err:= QueryColumnQuestionURL(db, groupID)
+	url , err:= QueryCourseInviteCopywringURL(db, groupID)
 	if nil != err {
 		fmt.Println("error")
 	}
@@ -70,8 +70,8 @@ func QueryColumnQuestion(groupID int64) (Q []base.BaseInfo) {
 	return
 }
 
-// QueryColumnQuestionURL for the image URL list data through the database query
-func QueryColumnQuestionURL(DB *sql.DB, id int64) (banns map[string][]string, err error) {
+// QueryCourseInviteCopywringURL for the image URL list data through the database query
+func QueryCourseInviteCopywringURL(DB *sql.DB, id int64) (banns map[string][]string, err error) {
 
 	fileRegexp := utils.FileRegexp()
 
@@ -80,7 +80,7 @@ func QueryColumnQuestionURL(DB *sql.DB, id int64) (banns map[string][]string, er
 		panic("panic")
 	}
 
-	sql, err := cfg.GetValue("sql","column_question")
+	sql, err := cfg.GetValue("sql","course_invite_copywring")
 	if err != nil {
 		panic("panic")
 	}
@@ -103,27 +103,27 @@ func QueryColumnQuestionURL(DB *sql.DB, id int64) (banns map[string][]string, er
 	voiceOss, _ := cfg.GetValue("oss-cdn-url","voice_oss")
 	docOss, _ := cfg.GetValue("oss-cdn-url","doc_oss")
 
-	var cloqu columnQuData
+	var inv inviteData
 	for rows.Next() {
-		var (
-			qsContent,
-			items string
-		)
 
-		err := rows.Scan(&cloqu.qsContent, &cloqu.items)
+		var (
+			tripContent ,
+			tripQrCode string
+		)
+		err := rows.Scan(&inv.tripContent, &inv.tripQrCode)
+
 		if err != nil {
 			fmt.Println(err)
 		}else {
-
-			if cloqu.qsContent.Valid {
-				qsContent = cloqu.qsContent.String
+			if inv.tripContent.Valid {
+				tripContent = inv.tripContent.String
 			}
 
-			if cloqu.items.Valid {
-				items = cloqu.items.String
+			if inv.tripQrCode.Valid {
+				tripQrCode = inv.tripQrCode.String
 			}
 
-			for _, x := range []string{qsContent, items}{
+			for _, x := range []string{tripContent, tripQrCode}{
 				if (x != ""){
 					c := fileRegexp.FindAllString(x,-1)
 					if (len(c) != 0){
@@ -155,6 +155,7 @@ func QueryColumnQuestionURL(DB *sql.DB, id int64) (banns map[string][]string, er
 					}
 				}
 			}
+
 		}
 	}
 
@@ -165,3 +166,5 @@ func QueryColumnQuestionURL(DB *sql.DB, id int64) (banns map[string][]string, er
 
 	return
 }
+
+

@@ -73,7 +73,6 @@ func QueryCourseURL(DB *sql.DB, id int64) (banns []string, err error) {
 			fmt.Println(err)
 		}else {
 			if (userImg != ""){
-				fmt.Println(userImg)
 				res := strings.HasPrefix(userImg, "/")
 				if res {
 					banns = append(banns, userImg[1:])
@@ -85,7 +84,6 @@ func QueryCourseURL(DB *sql.DB, id int64) (banns []string, err error) {
 
 			if (bannerImg != ""){
 				banns = append(banns, "backend_pic/dst/poster/"+bannerImg)
-				fmt.Println("backend_pic/dst/poster/"+bannerImg)
 			}
 		}
 	}
