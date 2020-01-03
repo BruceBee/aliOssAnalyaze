@@ -8,17 +8,18 @@
 package module
 
 import (
-	"fmt"
-	"database/sql"
-	"github.com/Unknwon/goconfig"
-	"runtime"
-	"strings"
 	"../base"
 	"../db"
+	"database/sql"
+	"fmt"
+	"runtime"
+	"strings"
 )
 
 // QueryCourseMedia for a list of basic data types
 func QueryCourseMedia(groupID int64) (Q []base.BaseInfo) {
+	sql, picBucket, picPrefix, _,_,_,_,_,_,_,_,_,_ := base.LoadConf("course_media")
+
 	mysqlConn, _ := db.InitDB()
 	defer mysqlConn.Close()
 	_, file, _, _ := runtime.Caller(0)
@@ -26,12 +27,12 @@ func QueryCourseMedia(groupID int64) (Q []base.BaseInfo) {
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 	b := base.BaseInfo{
 		GrpID: groupID,
-		PicBucket: "jdk3t-qiye",
-		PicPrefix: "backend_pic/dst/poster/",
+		PicBucket: picBucket,
+		PicPrefix: picPrefix,
 		TableName: filename,
 	}
 
-	url , err:= QueryCourseMediaURL(mysqlConn, b.GrpID)
+	url , err:= QueryCourseMediaURL(mysqlConn, sql, groupID)
 	if nil != err {
 		fmt.Println("error")
 	}
@@ -46,17 +47,7 @@ func QueryCourseMedia(groupID int64) (Q []base.BaseInfo) {
 }
 
 // QueryCourseMediaURL for the image URL list data through the database query
-func QueryCourseMediaURL(DB *sql.DB, id int64) (banns []string, err error) {
-
-	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
-	if err != nil {
-		panic("panic")
-	}
-
-	sql, err := cfg.GetValue("sql","course_media")
-	if err != nil {
-		panic("panic")
-	}
+func QueryCourseMediaURL(DB *sql.DB, sql string, id int64) (urls []string, err error) {
 
 	rows, err := DB.Query(sql, id)
 	if nil != err {
@@ -71,11 +62,11 @@ func QueryCourseMediaURL(DB *sql.DB, id int64) (banns []string, err error) {
 		rows.Scan(&miniPic, &pic)
 
 		if(miniPic != ""){
-			banns = append(banns, miniPic)
+			urls = append(urls, miniPic)
 		}
 
 		if(pic != ""){
-			banns = append(banns, pic)
+			urls = append(urls, pic)
 		}
 	}
 	return

@@ -51,36 +51,35 @@ func register(groupID int64, r chan <- base.BaseInfo, wg *sync.WaitGroup){
 
     var registerList []func(groupID int64) []base.BaseInfo
 
-    //registerList  = append(registerList, module.QueryBanner)
-    //registerList  = append(registerList, module.QueryCard)
-    //registerList  = append(registerList, module.QueryCardChapter)
-    //registerList  = append(registerList, module.QueryCardQuestion)
-    //registerList  = append(registerList, module.QueryColumnAnswer)
-    //registerList  = append(registerList, module.QueryColumnAnswerRemark)
-    //registerList  = append(registerList, module.QueryColumnCalender)
-    //registerList  = append(registerList, module.QueryColumnChapter)
-    //registerList  = append(registerList, module.QueryColumnEvalVoice)
-    //registerList  = append(registerList, module.QueryColumnModule)
-    //registerList  = append(registerList, module.QueryColumnQuestion)
-    //registerList  = append(registerList, module.QueryColumnSubmit)
-    //registerList  = append(registerList, module.QueryComment)
-    //registerList  = append(registerList, module.QueryCourse)
-    //registerList  = append(registerList, module.QueryCourseActivity)
-    //registerList  = append(registerList, module.QueryCourseAnswer)
-    //registerList  = append(registerList, module.QueryCourseCalender)
-    //registerList  = append(registerList, module.QueryCourseInviteCopywring)
-    //registerList  = append(registerList, module.QueryCourseMedia)
-    //registerList  = append(registerList, module.QueryCourseQuestion)
-    //registerList  = append(registerList, module.QueryDiscoverCourse)
-    //registerList  = append(registerList, module.QueryDiscoveryAnswer)
-    //registerList  = append(registerList, module.QueryDiscoveryEvaluation)
+    registerList  = append(registerList, module.QueryBanner)
+    registerList  = append(registerList, module.QueryCard)
+    registerList  = append(registerList, module.QueryCardChapter)
+    registerList  = append(registerList, module.QueryCardQuestion)
+    registerList  = append(registerList, module.QueryColumnAnswer)
+    registerList  = append(registerList, module.QueryColumnAnswerRemark)
+    registerList  = append(registerList, module.QueryColumnCalender)
+    registerList  = append(registerList, module.QueryColumnChapter)
+    registerList  = append(registerList, module.QueryColumnEvalVoice)
+    registerList  = append(registerList, module.QueryColumnModule)
+    registerList  = append(registerList, module.QueryColumnQuestion)
+    registerList  = append(registerList, module.QueryColumnSubmit)
+    registerList  = append(registerList, module.QueryComment)
+    registerList  = append(registerList, module.QueryCourse)
+    registerList  = append(registerList, module.QueryCourseActivity)
+    registerList  = append(registerList, module.QueryCourseAnswer)
+    registerList  = append(registerList, module.QueryCourseCalender)
+    registerList  = append(registerList, module.QueryCourseInviteCopywring)
+    registerList  = append(registerList, module.QueryCourseMedia)
+    registerList  = append(registerList, module.QueryCourseQuestion)
+    registerList  = append(registerList, module.QueryDiscoverCourse)
+    registerList  = append(registerList, module.QueryDiscoveryAnswer)
+    registerList  = append(registerList, module.QueryDiscoveryEvaluation)
     registerList  = append(registerList, module.QueryDiscoverySign)
-    //registerList  = append(registerList, module.QueryEvalVoice)
-    //registerList  = append(registerList, module.QueryReamrk)
-    //registerList  = append(registerList, module.QuerySignDayRecord)
-    //registerList  = append(registerList, module.QuerySignDayRecord)
-    // registerList  = append(registerList, module.QuerySource)
-    //registerList  = append(registerList, module.QuerySubmit)
+    registerList  = append(registerList, module.QueryEvalVoice)
+    registerList  = append(registerList, module.QueryReamrk)
+    registerList  = append(registerList, module.QuerySignDayRecord)
+    registerList  = append(registerList, module.QuerySource)
+    registerList  = append(registerList, module.QuerySubmit)
 
     for _, f := range registerList {
         res := f(groupID)
@@ -149,7 +148,7 @@ func (o *OSS) ReturnSize(groupID int64) error {
         ts := strconv.Itoa(totalData[t]["totalSize"])
 
         write.CreateFile(t, partLine + "\n")
-        write.CreateFile(t, fmt.Sprintf("Total: FileCount: %d ; FileSize: %s .\n",totalData[t]["totalCount"], utils.FormatSize(ts) ))
+        write.CreateFile(t, fmt.Sprintf("Total: RecordCount: %d ; FileCount: %d ; FileSize: %s .\n",totalData[t]["RecordCount"],totalData[t]["totalCount"], utils.FormatSize(ts) ))
     }
     return nil
 }
@@ -185,6 +184,8 @@ func (o *OSS) sizeCalc(info base.BaseInfo, fileName string, total map[string]map
             if err != nil {
                 log.Println("INCR failed:", err)
             }
+
+            total[info.TableName+"_Pic"]["RecordCount"] ++
 
             // first appear
             if (co == 1) {
@@ -231,6 +232,8 @@ func (o *OSS) sizeCalc(info base.BaseInfo, fileName string, total map[string]map
                 log.Println("INCR failed:", err)
             }
 
+            total[info.TableName+"_Voice"]["RecordCount"] ++
+
             // first appear
             if (co == 1) {
                 props, err := bucket.GetObjectDetailedMeta(info.VoicePrefix + info.VoiceURL)
@@ -275,6 +278,8 @@ func (o *OSS) sizeCalc(info base.BaseInfo, fileName string, total map[string]map
                 log.Println("INCR failed:", err)
             }
 
+            total[info.TableName+"_Video"]["RecordCount"] ++
+
             // first appear
             if (co == 1) {
                 props, err := bucket.GetObjectDetailedMeta(info.VideoPrefix + info.VideoURL)
@@ -318,6 +323,8 @@ func (o *OSS) sizeCalc(info base.BaseInfo, fileName string, total map[string]map
             if err != nil {
                 log.Println("INCR failed:", err)
             }
+
+            total[info.TableName+"_Doc"]["RecordCount"] ++
 
             // first appear
             if (co == 1) {

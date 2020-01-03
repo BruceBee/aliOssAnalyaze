@@ -8,14 +8,13 @@
 package module
 
 import (
+	"../../utils"
+	"../base"
+	"../db"
+	"database/sql"
 	"fmt"
 	"runtime"
 	"strings"
-	"database/sql"
-	"github.com/Unknwon/goconfig"
-	"../base"
-	"../db"
-	"../../utils"
 )
 
 type evalData struct{
@@ -27,21 +26,23 @@ type evalData struct{
 // QueryDiscoveryEvaluation is get a list of basic data types
 func QueryDiscoveryEvaluation(groupID int64) (Q []base.BaseInfo) {
 
+	sql, picBucket, picPrefix, picUrl,_,_,_,_,_,_,_,_,_ := base.LoadConf("discovery_evaluation")
+
 	mysqlConn, _ := db.InitDB()
 	defer mysqlConn.Close()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 
-	url , err:= QueryDiscoveryEvaluationURL(mysqlConn, groupID)
+	url , err:= QueryDiscoveryEvaluationURL(mysqlConn, sql, groupID, picUrl+picPrefix)
 	if nil != err {
 		fmt.Println("error")
 	}
 
 	b := base.BaseInfo{
 		GrpID: groupID,
-		PicBucket: "jdk3t-qiye",
-		PicPrefix: "backend_pic/dst/poster/",
+		PicBucket: picBucket,
+		PicPrefix: picPrefix,
 		TableName: filename,
 	}
 
@@ -56,26 +57,14 @@ func QueryDiscoveryEvaluation(groupID int64) (Q []base.BaseInfo) {
 }
 
 // QueryDiscoveryEvaluationURL for the image URL list data through the database query
-func QueryDiscoveryEvaluationURL(DB *sql.DB, id int64) (banns []string, err error) {
+func QueryDiscoveryEvaluationURL(DB *sql.DB, sql string, id int64, prefix string) (urls []string, err error) {
 
 	fileRegexp := utils.FileRegexp()
-
-	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
-	if err != nil {
-		panic("panic")
-	}
-
-	sql, err := cfg.GetValue("sql","discovery_evaluation")
-	if err != nil {
-		panic("panic")
-	}
 
 	rows, err := DB.Query(sql, id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}
-
-	qiyeOss, _ := cfg.GetValue("oss-cdn-url","qiye_oss")
 
 	var eval evalData
 
@@ -86,22 +75,22 @@ func QueryDiscoveryEvaluationURL(DB *sql.DB, id int64) (banns []string, err erro
 			fmt.Println(err)
 		}else {
 			if eval.evalSrc.Valid  {
-				st1 := strings.HasPrefix(eval.evalSrc.String, qiyeOss)
-				if st1 {
-					u := strings.Replace(eval.evalSrc.String, qiyeOss, "", -1)
-					banns = append(banns, u)
+				picHasPre := strings.HasPrefix(eval.evalSrc.String, prefix)
+				if picHasPre {
+					es := strings.Replace(eval.evalSrc.String, prefix, "", -1)
+					urls = append(urls, es)
 				}
 			}
 
 			if eval.evalTitle.Valid {
 				if (eval.evalTitle.String != ""){
-					c := fileRegexp.FindAllString(eval.evalTitle.String,-1)
-					if (len(c) != 0){
-						for _, y := range c {
-							st1 := strings.HasPrefix(y, qiyeOss)
-							if st1 {
-								u := strings.Replace(y, qiyeOss, "", -1)
-								banns = append(banns, u)
+					et := fileRegexp.FindAllString(eval.evalTitle.String,-1)
+					if (len(et) != 0){
+						for _, v := range et {
+							picHasPre := strings.HasPrefix(v, prefix)
+							if picHasPre {
+								u := strings.Replace(v, prefix, "", -1)
+								urls = append(urls, u)
 							}
 						}
 					}
@@ -109,10 +98,10 @@ func QueryDiscoveryEvaluationURL(DB *sql.DB, id int64) (banns []string, err erro
 			}
 
 			if eval.courseSrc.Valid {
-				st1 := strings.HasPrefix(eval.evalSrc.String, qiyeOss)
-				if st1 {
-					u := strings.Replace(eval.evalSrc.String, qiyeOss, "", -1)
-					banns = append(banns, u)
+				picHasPre := strings.HasPrefix(eval.evalSrc.String, prefix)
+				if picHasPre {
+					es := strings.Replace(eval.evalSrc.String, prefix, "", -1)
+					urls = append(urls, es)
 				}
 			}
 		}

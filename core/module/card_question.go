@@ -9,42 +9,17 @@ package module
 
 import (
 	"fmt"
-	"reflect"
 	"runtime"
 	"strings"
 	"database/sql"
-	"encoding/json"
-	"github.com/Unknwon/goconfig"
 	"../base"
 	"../db"
+	"../../utils"
 )
-
-// CardQuestion...
-type CardQuestion struct {
-	Text string `json:"text"`
-	Notes string `json:"notes"`
-	EvalTime int `json:"evalTime"`
-	EvalLimit int `json:"evalLimit"`
-	Voice CardQuestionVoice `json:"voice"` 
-} 
-
-// CardQuestionVoice ...
-type CardQuestionVoice struct {
-	VoiceURL string `json:"voice_url"`
-	VoiceName string `json:"voice_name"`
-	Name string `json:"name"`
-	VoiceAvater string `json:"voice_avater"`
-}
-
-// IsEmpty for check sturct is empty
-func (c CardQuestion) IsEmpty() bool {
-	return reflect.DeepEqual(c, CardQuestion{})
-}
-
 
 // QueryCardQuestion is get a list of basic data types
 func QueryCardQuestion(groupID int64) (Q []base.BaseInfo) {
-
+	sql, _, _, _,voiceBucket,voicePrefix,voiceUrl,_,_,_,_,_,_ := base.LoadConf("card_question")
 	mysqlConn, _ := db.InitDB()
 	defer mysqlConn.Close()
 
@@ -53,25 +28,18 @@ func QueryCardQuestion(groupID int64) (Q []base.BaseInfo) {
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 	b := base.BaseInfo{
 		GrpID: groupID,
-		VoiceBucket: "jdk3t-voice",
-		VoicePrefix: "backend_voice/",
+		VoiceBucket: voiceBucket,
+		VoicePrefix: voicePrefix,
 		TableName: filename,
 	}
-	url , err:= QueryCardQuestionURL(mysqlConn, b.GrpID)
+	url , err:= QueryCardQuestionURL(mysqlConn, sql, groupID, voiceUrl+voicePrefix)
 	if nil != err {
 		fmt.Println("error")
 	}
 
-	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
-	if err != nil {
-		panic("panic")
-	}
-
-	voiceOss, _ := cfg.GetValue("oss-cdn-url","voice_oss")
-
 	for _, u := range url {
 		if (u != "") {
-			b.VoiceURL = strings.Replace(u, voiceOss, "", -1)
+			b.VoiceURL = u
 			Q = append(Q, b)
 		}
 	}
@@ -80,17 +48,9 @@ func QueryCardQuestion(groupID int64) (Q []base.BaseInfo) {
 }
 
 // QueryCardQuestionURL for the image URL list data through the database query
-func QueryCardQuestionURL(DB *sql.DB, id int64) (url []string, err error) {
+func QueryCardQuestionURL(DB *sql.DB, sql string, id int64, prefix string) (urls []string, err error) {
 
-	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
-	if err != nil {
-		panic("panic")
-	}
-
-	sql, err := cfg.GetValue("sql","card_question")
-	if err != nil {
-		panic("panic")
-	}
+	fileRegexp := utils.FileRegexp()
 
 	rows, err := DB.Query(sql, id)
 	if nil != err {
@@ -107,35 +67,20 @@ func QueryCardQuestionURL(DB *sql.DB, id int64) (url []string, err error) {
 		if err != nil {
 			fmt.Println(err)
 		}else {
-			var (
-				question,
-				item CardQuestion
-			)
-			err = json.Unmarshal([]byte(contentStr), &question)
-			if err == nil{
-				if !question.IsEmpty(){
-					st := reflect.ValueOf(question)
-					st2 := st.FieldByName("Voice").FieldByName("VoiceURL").String()
-					if(st2 != ""){
-						url = append(url, st2)
-					}
-				}
-			}
+			contx := fileRegexp.FindAllString(contentStr,-1)
+			item := fileRegexp.FindAllString(itemStr,-1)
 
-
-			err = json.Unmarshal([]byte(itemStr), &item)
-			if err == nil{
-				if !item.IsEmpty(){
-					st := reflect.ValueOf(item)
-					st2 := st.FieldByName("Voice").FieldByName("VoiceURL").String()
-					if(st2 != ""){
-						url = append(url, st2)
+			for _, val := range [][]string{contx, item} {
+				for _, v := range val {
+					hasPre := strings.HasPrefix(v, prefix)
+					if hasPre {
+						u := strings.Replace(v, prefix, "", -1)
+						urls = append(urls, u)
 					}
 				}
 			}
 		}
 	}
-
 	return
 }
 

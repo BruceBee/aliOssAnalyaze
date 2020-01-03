@@ -37,3 +37,4 @@ func FileRegexp() (fr *regexp.Regexp)  {
     fr = regexp.MustCompile("https://([^:]*?)\\.(jpg|png|gif|mp3|silk|mp4|m3u8|txt|rtf|doc|docx|xls|xlsx|ppt|pptx|pdf)")
     return
 }
+

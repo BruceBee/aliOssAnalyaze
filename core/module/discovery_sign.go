@@ -8,14 +8,13 @@
 package module
 
 import (
-	"fmt"
-	"database/sql"
-	"github.com/Unknwon/goconfig"
-	"runtime"
-	"strings"
+	"../../utils"
 	"../base"
 	"../db"
-	"../../utils"
+	"database/sql"
+	"fmt"
+	"runtime"
+	"strings"
 )
 
 type discovSignData struct{
@@ -25,6 +24,7 @@ type discovSignData struct{
 
 // QueryDiscoverySign for a list of basic data types
 func QueryDiscoverySign(groupID int64) (Q []base.BaseInfo) {
+	sql, picBucket, picPrefix, picUrl,voiceBucket,voicePrefix,voiceUrl,videoBucket,videoPrefix,videoUrl,docBucket,docPrefix,docUrl := base.LoadConf("discovery_sign")
 
 	mysqlConn, _ := db.InitDB()
 	defer mysqlConn.Close()
@@ -33,7 +33,7 @@ func QueryDiscoverySign(groupID int64) (Q []base.BaseInfo) {
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 
-	url , err:= QueryDiscoverySignURL(mysqlConn, groupID)
+	url , err:= QueryDiscoverySignURL(mysqlConn, sql, groupID, picUrl+picPrefix, voiceUrl+voicePrefix, videoUrl+videoPrefix,docUrl+docPrefix)
 	if nil != err {
 		fmt.Println("error")
 	}
@@ -41,7 +41,6 @@ func QueryDiscoverySign(groupID int64) (Q []base.BaseInfo) {
 	if err != nil {
 		fmt.Println("redis set error:", err)
 	}
-
 
 	for k, u := range url {
 		b := base.BaseInfo{
@@ -52,25 +51,25 @@ func QueryDiscoverySign(groupID int64) (Q []base.BaseInfo) {
 		for _, x := range u {
 			switch k {
 			case "pic":
-				b.PicBucket = "jdk3t-qiye"
-				b.PicPrefix = "backend_pic/dst/poster/"
+				b.PicBucket = picBucket
+				b.PicPrefix = picPrefix
 				b.PicURL = x
 			case "qr":
-				b.PicBucket = "jdk3t-qiye"
+				b.PicBucket = picBucket
 				b.PicPrefix = ""
 				b.PicURL = x
 			case "voice":
 				b.VoiceURL = x
-				b.VoiceBucket ="jdk3t-voice"
-				b.VoicePrefix = "backend_voice/"
+				b.VoiceBucket = voiceBucket
+				b.VoicePrefix = voicePrefix
 			case "video":
 				b.VideoURL = x
-				b.VideoBucket ="jdk3t-video"
-				b.VideoPrefix = "video/"
+				b.VideoBucket = videoBucket
+				b.VideoPrefix = videoPrefix
 			case "doc":
 				b.DocURL = x
-				b.DocBucket ="jdk3t-doc"
-				b.DocPrefix = "document/"
+				b.DocBucket = docBucket
+				b.DocPrefix = docPrefix
 			default:
 				fmt.Println("err: no type")
 			}
@@ -82,25 +81,15 @@ func QueryDiscoverySign(groupID int64) (Q []base.BaseInfo) {
 }
 
 // QueryDiscoverySignURL for the image URL list data through the database query
-func QueryDiscoverySignURL(DB *sql.DB, id int64) (banns map[string][]string, err error) {
+func QueryDiscoverySignURL(DB *sql.DB, sql string, id int64, picPref, voicePref,videoPref, docPref string) (urls map[string][]string, err error) {
 	fileRegexp := utils.FileRegexp()
-
-	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
-	if err != nil {
-		panic("panic")
-	}
-
-	sql, err := cfg.GetValue("sql","discovery_sign")
-	if err != nil {
-		panic("panic")
-	}
 
 	rows, err := DB.Query(sql, id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}
 
-	banns = make(map[string][]string)
+	urls = make(map[string][]string)
 	var (
 		pp ,
 		qr ,
@@ -108,12 +97,6 @@ func QueryDiscoverySignURL(DB *sql.DB, id int64) (banns map[string][]string, err
 		vo ,
 		doc []string
 	)
-
-	qiyeOss, _ := cfg.GetValue("oss-cdn-url","qiye_oss")
-	videoOss, _ := cfg.GetValue("oss-cdn-url","video_oss")
-	voiceOss, _ := cfg.GetValue("oss-cdn-url","voice_oss")
-	docOss, _ := cfg.GetValue("oss-cdn-url","doc_oss")
-
 
 	var disCovSign discovSignData
 	for rows.Next() {
@@ -128,7 +111,6 @@ func QueryDiscoverySignURL(DB *sql.DB, id int64) (banns map[string][]string, err
 		}else {
 			if disCovSign.qrImg.Valid {
 				if (disCovSign.qrImg.String != ""){
-					fmt.Println(disCovSign.qrImg.String)
 					qrImg = disCovSign.qrImg.String[1:]
 					qr = append(qr, qrImg)
 				}
@@ -139,41 +121,40 @@ func QueryDiscoverySignURL(DB *sql.DB, id int64) (banns map[string][]string, err
 				pc := fileRegexp.FindAllString(pcContent,-1)
 				if (len(pc) != 0){
 					for _, p := range pc {
-						st1 := strings.HasPrefix(p, qiyeOss)
-						if st1 {
-							u := strings.Replace(p, qiyeOss, "", -1)
+						picHasPre := strings.HasPrefix(p, picPref)
+						if picHasPre {
+							u := strings.Replace(p, picPref, "", -1)
 							pp = append(pp, u)
 						}
 
-						st2 := strings.HasPrefix(p, videoOss)
-						if st2 {
-							u := strings.Replace(p, videoOss, "", -1)
-							vi = append(vi, u)
+						viHasPre := strings.HasPrefix(p, videoPref)
+						if viHasPre {
+							i := strings.Replace(p, videoPref, "", -1)
+							vi = append(vi, i)
 						}
 
-						st3 := strings.HasPrefix(p, voiceOss)
-						if st3 {
-							u := strings.Replace(p, voiceOss, "", -1)
-							vo = append(vo, u)
+						voHasPre := strings.HasPrefix(p, voicePref)
+						if voHasPre {
+							o := strings.Replace(p, voicePref, "", -1)
+							vo = append(vo, o)
 						}
 
-						st4 := strings.HasPrefix(p, docOss)
-						if st4 {
-							u := strings.Replace(p, docOss, "", -1)
-							doc = append(doc, u)
+						docHasPre := strings.HasPrefix(p, docPref)
+						if docHasPre {
+							d := strings.Replace(p, docPref, "", -1)
+							doc = append(doc, d)
 						}
 					}
 				}
 			}
-
 		}
 	}
 
-	banns["pic"] = pp
-	banns["qr"] = qr
-	banns["video"] = vi
-	banns["voice"] = vo
-	banns["doc"] = doc
+	urls["pic"] = pp
+	urls["qr"] = qr
+	urls["video"] = vi
+	urls["voice"] = vo
+	urls["doc"] = doc
 
 	return
 }

@@ -9,7 +9,6 @@ package module
 import (
 	"fmt"
 	"database/sql"
-	"github.com/Unknwon/goconfig"
 	"runtime"
 	"strings"
 	"../base"
@@ -18,7 +17,8 @@ import (
 
 // QueryDiscoverCourse for a list of basic data types
 func QueryDiscoverCourse(groupID int64) (Q []base.BaseInfo) {
-	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
+	sql, picBucket, picPrefix, picUrl,_,_,_,_,_,_,_,_,_ := base.LoadConf("discover_course")
+
 	mysqlConn, _ := db.InitDB()
 	defer mysqlConn.Close()
 	_, file, _, _ := runtime.Caller(0)
@@ -26,20 +26,19 @@ func QueryDiscoverCourse(groupID int64) (Q []base.BaseInfo) {
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 	b := base.BaseInfo{
 		GrpID: groupID,
-		PicBucket: "jdk3t-qiye",
-		PicPrefix: "backend_pic/dst/poster/",
+		PicBucket: picBucket,
+		PicPrefix: picPrefix,
 		TableName: filename,
 	}
 
-	url , err:= QueryDiscoverCourseURL(mysqlConn, b.GrpID)
+	url , err:= QueryDiscoverCourseURL(mysqlConn, sql, groupID, picUrl+picPrefix)
 	if nil != err {
 		fmt.Println("error")
 	}
 
-	qiyeOss, _ := cfg.GetValue("oss-cdn-url","qiye_oss")
 	for _, u := range url {
 		if (u != "") {
-			b.PicURL = strings.Replace(u, qiyeOss, "", -1)
+			b.PicURL = u
 			Q = append(Q, b)
 		}
 	}
@@ -47,28 +46,17 @@ func QueryDiscoverCourse(groupID int64) (Q []base.BaseInfo) {
 }
 
 // QueryDiscoverCourseURL for the image URL list data through the database query
-func QueryDiscoverCourseURL(DB *sql.DB, id int64) (banns []string, err error) {
-
-	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
-	if err != nil {
-		panic("panic")
-	}
-
-	sql, err := cfg.GetValue("sql","discover_course")
-	if err != nil {
-		panic("panic")
-	}
-
+func QueryDiscoverCourseURL(DB *sql.DB, sql string, id int64, prefix string) (urls []string, err error) {
 	rows, err := DB.Query(sql, id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}
 
 	for rows.Next() {
-		var bann string
-		rows.Scan(&bann)
-		if (bann != ""){
-			banns = append(banns, bann)
+		var url string
+		rows.Scan(&url)
+		if (url != ""){
+			urls = append(urls, strings.Replace(url, prefix, "", -1))
 		}
 	}
 	return

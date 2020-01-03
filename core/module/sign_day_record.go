@@ -8,17 +8,17 @@
 package module
 
 import (
-	"fmt"
-	"database/sql"
-	"github.com/Unknwon/goconfig"
-	"runtime"
-	"strings"
 	"../base"
 	"../db"
+	"database/sql"
+	"fmt"
+	"runtime"
+	"strings"
 )
 
 // QuerySignDayRecord for a list of basic data types
 func QuerySignDayRecord(groupID int64) (Q []base.BaseInfo) {
+	sql, picBucket, _, _,_,_,_,_,_,_,_,_,_ := base.LoadConf("sign_day_record")
 	mysqlConn, _ := db.InitDB()
 	defer mysqlConn.Close()
 	_, file, _, _ := runtime.Caller(0)
@@ -26,12 +26,12 @@ func QuerySignDayRecord(groupID int64) (Q []base.BaseInfo) {
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 	b := base.BaseInfo{
 		GrpID: groupID,
-		PicBucket: "jdk3t-qiye",
+		PicBucket: picBucket,
 		PicPrefix: "",
 		TableName: filename,
 	}
 
-	url , err:= QuerySignDayRecordURL(mysqlConn, b.GrpID)
+	url , err:= QuerySignDayRecordURL(mysqlConn, sql, groupID)
 	if nil != err {
 		fmt.Println("error")
 	}
@@ -46,27 +46,16 @@ func QuerySignDayRecord(groupID int64) (Q []base.BaseInfo) {
 }
 
 // QuerySignDayRecordURL for the image URL list data through the database query
-func QuerySignDayRecordURL(DB *sql.DB, id int64) (banns []string, err error) {
-
-	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
-	if err != nil {
-		panic("panic")
-	}
-
-	sql, err := cfg.GetValue("sql","sign_day_record")
-	if err != nil {
-		panic("panic")
-	}
-
+func QuerySignDayRecordURL(DB *sql.DB, sql string, id int64) (urls []string, err error) {
 	rows, err := DB.Query(sql, id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}
 
 	for rows.Next() {
-		var bann string
-		rows.Scan(&bann)
-		banns = append(banns, bann)
+		var url string
+		rows.Scan(&url)
+		urls = append(urls, url)
 	}
 	return
 }

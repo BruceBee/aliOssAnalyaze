@@ -8,17 +8,18 @@
 package module
 
 import (
-	"fmt"
-	"database/sql"
-	"github.com/Unknwon/goconfig"
-	"runtime"
-	"strings"
 	"../base"
 	"../db"
+	"database/sql"
+	"fmt"
+	"runtime"
+	"strings"
 )
 
 // QueryColumnEvalVoice for a list of basic data types
 func QueryColumnEvalVoice(groupID int64) (Q []base.BaseInfo) {
+	sql, _, _, _,voiceBucket,voicePrefix,_,_,_,_,_,_,_ := base.LoadConf("column_eval_voice")
+
 	mysqlConn, _ := db.InitDB()
 	defer mysqlConn.Close()
 	_, file, _, _ := runtime.Caller(0)
@@ -26,12 +27,12 @@ func QueryColumnEvalVoice(groupID int64) (Q []base.BaseInfo) {
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 	b := base.BaseInfo{
 		GrpID: groupID,
-		PicBucket: "jdk3t-voice",
-		PicPrefix: "backend_voice/",
+		PicBucket: voiceBucket,
+		PicPrefix: voicePrefix,
 		TableName: filename,
 	}
 
-	url , err:= QueryColumnEvalVoiceURL(mysqlConn, b.GrpID)
+	url , err:= QueryColumnEvalVoiceURL(mysqlConn, sql, groupID)
 	if nil != err {
 		fmt.Println("error")
 	}
@@ -46,17 +47,7 @@ func QueryColumnEvalVoice(groupID int64) (Q []base.BaseInfo) {
 }
 
 // QueryColumnEvalVoiceURL for the image URL list data through the database query
-func QueryColumnEvalVoiceURL(DB *sql.DB, id int64) (banns []string, err error) {
-
-	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
-	if err != nil {
-		panic("panic")
-	}
-
-	sql, err := cfg.GetValue("sql","column_eval_voice")
-	if err != nil {
-		panic("panic")
-	}
+func QueryColumnEvalVoiceURL(DB *sql.DB, sql string, id int64) (urls []string, err error) {
 
 	rows, err := DB.Query(sql, id)
 	if nil != err {
@@ -64,9 +55,9 @@ func QueryColumnEvalVoiceURL(DB *sql.DB, id int64) (banns []string, err error) {
 	}
 
 	for rows.Next() {
-		var bann string
-		rows.Scan(&bann)
-		banns = append(banns, bann)
+		var url string
+		rows.Scan(&url)
+		urls = append(urls, url)
 	}
 	return
 }
