@@ -8,29 +8,31 @@
 package module
 
 import (
-	"fmt"
-	"database/sql"
-	"github.com/Unknwon/goconfig"
-	"runtime"
-	"strings"
 	"../base"
 	"../db"
+	"database/sql"
+	"fmt"
+	"runtime"
+	"strings"
 )
 
 // QueryCourse for a list of basic data types
 func QueryCourse(groupID int64) (Q []base.BaseInfo) {
-	db, _ := db.InitDB()
+	sql, picBucket, _, _,_,_,_,_,_,_,_,_,_ := base.LoadConf("course")
+
+	mysqlConn, _ := db.InitDB()
+	defer mysqlConn.Close()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 	b := base.BaseInfo{
 		GrpID: groupID,
-		PicBucket: "jdk3t-qiye",
+		PicBucket: picBucket,
 		PicPrefix: "",
 		TableName: filename,
 	}
 
-	url , err:= QueryCourseURL(db, b.GrpID)
+	url , err:= QueryCourseURL(mysqlConn, sql, groupID)
 	if nil != err {
 		fmt.Println("error")
 	}
@@ -45,17 +47,7 @@ func QueryCourse(groupID int64) (Q []base.BaseInfo) {
 }
 
 // QueryCourseURL for the image URL list data through the database query
-func QueryCourseURL(DB *sql.DB, id int64) (banns []string, err error) {
-
-	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
-	if err != nil {
-		panic("panic")
-	}
-
-	sql, err := cfg.GetValue("sql","course")
-	if err != nil {
-		panic("panic")
-	}
+func QueryCourseURL(DB *sql.DB, sql string, id int64) (urls []string, err error) {
 
 	rows, err := DB.Query(sql, id)
 	if nil != err {
@@ -73,19 +65,17 @@ func QueryCourseURL(DB *sql.DB, id int64) (banns []string, err error) {
 			fmt.Println(err)
 		}else {
 			if (userImg != ""){
-				fmt.Println(userImg)
 				res := strings.HasPrefix(userImg, "/")
 				if res {
-					banns = append(banns, userImg[1:])
+					urls = append(urls, userImg[1:])
 				}else {
-					banns = append(banns, userImg)
+					urls = append(urls, userImg)
 				}
 
 			}
 
 			if (bannerImg != ""){
-				banns = append(banns, "backend_pic/dst/poster/"+bannerImg)
-				fmt.Println("backend_pic/dst/poster/"+bannerImg)
+				urls = append(urls, "backend_pic/dst/poster/"+bannerImg)
 			}
 		}
 	}

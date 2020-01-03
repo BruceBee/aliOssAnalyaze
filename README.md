@@ -25,6 +25,22 @@ You must ensure that you have obtained the keys of aliyun OSS, including `access
 
 You also need to fill in the database connection information and the OSS key to the `conf/app.ini`.
 
+## Configure
+In the configuration file, the items in `os-info` respectively represent four file types, `pic` for picture, `voice` for voice, `video` for video, and `doc` for document.
+
+Meanwhile, in the `utils\utils.go` module, we set the file suffix type to include these `jpg、png、gif、mp3、silk、mp4、m3u8、txt、rtf、doc、docx、xls、xlsx、ppt、pptx、pdf`，and you can adjust according to the actual situation.
+
+In `core\module`, By default, we set a module corresponding to an SQL query and tried to parse it. You can cut it according to your own needs. My parsing method may not be completely suitable for your business scenario.
+
+By default, we set a module corresponding to an SQL query and tried to parse it. You can cut it according to your own needs. My parsing method may not be completely suitable for your business scenario.
+
+It should be noted that each module may produce files of the above four types. We will display files of the same type in the same file and calculate the total capacity of files of the same class.
+
+Four different types of files are named as follows:
+
+    `ModuleFileName_Pic` 、 `ModuleFileName_Voice`、`ModuleFileName_Video` or `ModuleFileName_Doc`
+    
+    
 
 
 ## Usage

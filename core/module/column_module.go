@@ -8,25 +8,26 @@
 package module
 
 import (
-	"fmt"
-	"regexp"
-	"runtime"
-	"strings"
-	"database/sql"
-	"github.com/Unknwon/goconfig"
+	"../../utils"
 	"../base"
 	"../db"
+	"database/sql"
+	"fmt"
+	"runtime"
+	"strings"
 )
 
 // QueryColumnModule is get a list of basic data types
 func QueryColumnModule(groupID int64) (Q []base.BaseInfo) {
+	sql, picBucket, picPrefix, picUrl,voiceBucket,voicePrefix,voiceUrl,videoBucket,videoPrefix,videoUrl,docBucket,docPrefix,docUrl := base.LoadConf("column_module")
 
-	db, _ := db.InitDB()
+	mysqlConn, _ := db.InitDB()
+	defer mysqlConn.Close()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 
-	url , err:= QueryColumnModuleURL(db, groupID)
+	url , err:= QueryColumnModuleURL(mysqlConn, sql, groupID, picUrl+picPrefix, voiceUrl+voicePrefix, videoUrl+videoPrefix,docUrl+docPrefix)
 	if nil != err {
 		fmt.Println("error")
 	}
@@ -40,21 +41,21 @@ func QueryColumnModule(groupID int64) (Q []base.BaseInfo) {
 		for _, x := range u {
 			switch k {
 			case "pic":
-				b.PicBucket = "jdk3t-qiye"
-				b.PicPrefix = "backend_pic/dst/poster/"
+				b.PicBucket = picBucket
+				b.PicPrefix = picPrefix
 				b.PicURL = x
 			case "voice":
 				b.VoiceURL = x
-				b.VoiceBucket ="jdk3t-voice"
-				b.VoicePrefix = "backend_voice/"
+				b.VoiceBucket = voiceBucket
+				b.VoicePrefix = voicePrefix
 			case "video":
 				b.VideoURL = x
-				b.VideoBucket ="jdk3t-video"
-				b.VideoPrefix = "video/"
+				b.VideoBucket = videoBucket
+				b.VideoPrefix = videoPrefix
 			case "doc":
 				b.DocURL = x
-				b.DocBucket ="jdk3t-doc"
-				b.DocPrefix = "document/"
+				b.DocBucket = docBucket
+				b.DocPrefix = docPrefix
 			default:
 				fmt.Println("err: no type")
 			}
@@ -66,35 +67,22 @@ func QueryColumnModule(groupID int64) (Q []base.BaseInfo) {
 }
 
 // QueryColumnModuleURL for the image URL list data through the database query
-func QueryColumnModuleURL(DB *sql.DB, id int64) (banns map[string][]string, err error) {
+func QueryColumnModuleURL(DB *sql.DB, sql string, id int64, picPref, voicePref,videoPref, docPref string) (urls map[string][]string, err error) {
 
-	cfg, err := goconfig.LoadConfigFile("conf/app.ini")
-	if err != nil {
-		panic("panic")
-	}
-
-	sql, err := cfg.GetValue("sql","column_module")
-	if err != nil {
-		panic("panic")
-	}
+	fileRegexp := utils.FileRegexp()
 
 	rows, err := DB.Query(sql, id)
 	if nil != err {
 		fmt.Println("QueryRow Error", err)
 	}
 
-	banns = make(map[string][]string)
+	urls = make(map[string][]string)
 	var (
 		pp ,
 		vi ,
 		vo ,
 		doc []string
 	)
-
-	qiyeOss, _ := cfg.GetValue("oss-cdn-url","qiye_oss")
-	videoOss, _ := cfg.GetValue("oss-cdn-url","video_oss")
-	voiceOss, _ := cfg.GetValue("oss-cdn-url","voice_oss")
-	docOss, _ := cfg.GetValue("oss-cdn-url","doc_oss")
 
 	for rows.Next() {
 		var (
@@ -106,77 +94,44 @@ func QueryColumnModuleURL(DB *sql.DB, id int64) (banns map[string][]string, err 
 		if err != nil {
 			fmt.Println(err)
 		}else {
-			r := regexp.MustCompile("https://([^:]*?)\\.(mp3|mp4|png|docx|jpg|pptx|gif|doc|pdf)")
 
-			c := r.FindAllString(pcContent,-1)
+			pcCon := fileRegexp.FindAllString(pcContent,-1)
+			readCon := fileRegexp.FindAllString(readContent,-1)
 
-			for _, x := range c {
+			for _, val := range [][]string{pcCon, readCon} {
+				for _, v := range val {
+					picHasPre := strings.HasPrefix(v, picPref)
+					if picHasPre {
+						p := strings.Replace(v, picPref, "", -1)
+						pp = append(pp, p)
+					}
 
-				st1 := strings.HasPrefix(x, qiyeOss)
-				if st1 {
-					u := strings.Replace(x, qiyeOss, "", -1)
-					pp = append(pp, u)
-				}
+					viHasPre := strings.HasPrefix(v, videoPref)
+					if viHasPre {
+						i := strings.Replace(v, videoPref, "", -1)
+						vi = append(vi, i)
+					}
 
-				st2 := strings.HasPrefix(x, videoOss)
-				if st2 {
-					u := strings.Replace(x, videoOss, "", -1)
-					vi = append(vi, u)
-				}
+					voHasPre := strings.HasPrefix(v, voicePref)
+					if voHasPre {
+						o := strings.Replace(v, voicePref, "", -1)
+						vo = append(vo, o)
+					}
 
-				st3 := strings.HasPrefix(x, voiceOss)
-				if st3 {
-					u := strings.Replace(x, voiceOss, "", -1)
-					vo = append(vo, u)
-				}
-
-				st4 := strings.HasPrefix(x, docOss)
-				if st4 {
-					u := strings.Replace(x, docOss, "", -1)
-					doc = append(doc, u)
-				}
-			}
-
-
-			r2 := regexp.MustCompile("https://([^:]*?)\\.(mp3|mp4|png|docx|jpg|pptx|gif|doc|pdf)")
-
-			c2 := r2.FindAllString(readContent,-1)
-
-			for _, x := range c2 {
-
-				st1 := strings.HasPrefix(x, qiyeOss)
-				if st1 {
-					u := strings.Replace(x, qiyeOss, "", -1)
-					pp = append(pp, u)
-				}
-
-				st2 := strings.HasPrefix(x, videoOss)
-				if st2 {
-					u := strings.Replace(x, videoOss, "", -1)
-					vi = append(vi, u)
-				}
-
-				st3 := strings.HasPrefix(x, voiceOss)
-				if st3 {
-					u := strings.Replace(x, voiceOss, "", -1)
-					vo = append(vo, u)
-				}
-
-				st4 := strings.HasPrefix(x, docOss)
-				if st4 {
-					u := strings.Replace(x, docOss, "", -1)
-					doc = append(doc, u)
+					docHasPre := strings.HasPrefix(v, docPref)
+					if docHasPre {
+						d := strings.Replace(v, docPref, "", -1)
+						doc = append(doc, d)
+					}
 				}
 			}
-
-
 		}
 	}
 
-	banns["pic"] = pp
-	banns["video"] = vi
-	banns["voice"] = vo
-	banns["doc"] = doc
+	urls["pic"] = pp
+	urls["video"] = vi
+	urls["voice"] = vo
+	urls["doc"] = doc
 
 	return
 }
