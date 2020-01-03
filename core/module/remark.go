@@ -26,11 +26,12 @@ type remarkData struct{
 
 // QueryReamrk for a list of basic data types
 func QueryReamrk(groupID int64) (Q []base.BaseInfo) {
-	db, _ := db.InitDB()
+	mysqlConn, _ := db.InitDB()
+	defer mysqlConn.Close()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
-	url , err:= QueryReamrkURL(db, groupID)
+	url , err:= QueryReamrkURL(mysqlConn, groupID)
 	if nil != err {
 		fmt.Println("error")
 	}

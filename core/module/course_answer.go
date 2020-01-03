@@ -19,12 +19,13 @@ import (
 
 // QueryCourseAnswer for a list of basic data types
 func QueryCourseAnswer(groupID int64) (Q []base.BaseInfo) {
-	db, _ := db.InitDB()
+	mysqlConn, _ := db.InitDB()
+	defer mysqlConn.Close()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 
-	url , err:= QueryCourseAnswerURL(db, groupID)
+	url , err:= QueryCourseAnswerURL(mysqlConn, groupID)
 	if nil != err {
 		fmt.Println("error")
 	}

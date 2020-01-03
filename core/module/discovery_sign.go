@@ -25,15 +25,23 @@ type discovSignData struct{
 
 // QueryDiscoverySign for a list of basic data types
 func QueryDiscoverySign(groupID int64) (Q []base.BaseInfo) {
-	db, _ := db.InitDB()
+
+	mysqlConn, _ := db.InitDB()
+	defer mysqlConn.Close()
+
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
 
-	url , err:= QueryDiscoverySignURL(db, groupID)
+	url , err:= QueryDiscoverySignURL(mysqlConn, groupID)
 	if nil != err {
 		fmt.Println("error")
 	}
+
+	if err != nil {
+		fmt.Println("redis set error:", err)
+	}
+
 
 	for k, u := range url {
 		b := base.BaseInfo{

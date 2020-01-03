@@ -22,12 +22,15 @@ import (
     "./base"
     "./module"
     "./write"
+    "./db"
+    "log"
     "os"
     "strconv"
     "sync"
     "time"
     "fmt"
     "github.com/Unknwon/goconfig"
+    "github.com/garyburd/redigo/redis"
     "github.com/aliyun/aliyun-oss-go-sdk/oss"
 )
 
@@ -154,6 +157,9 @@ func (o *OSS) ReturnSize(groupID int64) error {
 // SizeCalc ...
 func (o *OSS) sizeCalc(info base.BaseInfo, fileName string, total map[string]map[string]int){
 
+    redisConn, _ := db.InitRedis()
+    defer redisConn.Close()
+
     partLine := partLine()
 
     if (info.PicBucket != "" ) {
@@ -173,22 +179,31 @@ func (o *OSS) sizeCalc(info base.BaseInfo, fileName string, total map[string]map
             fmt.Println("BucketError:", err)
             //os.Exit(-1)
         }else {
-            props, err := bucket.GetObjectDetailedMeta(info.PicPrefix + info.PicURL)
+
+            redisKey := fmt.Sprintf("%s_%s", fName, info.PicURL)
+            co, err := redis.Int64(redisConn.Do("INCR", redisKey))
             if err != nil {
-                fmt.Println("ObjectError:", err)
-                //os.Exit(-1)
-            }else {
-
-                Cont := utils.FormatSize(props["Content-Length"][0])
-                ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
-
-                total[info.TableName+"_Pic"]["totalSize"] += ContentLength
-                total[info.TableName+"_Pic"]["totalCount"] ++
-
-                fmt.Printf("%s | %s\n", Cont, info.PicURL)
-                write.CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.PicURL))
+                log.Println("INCR failed:", err)
             }
 
+            // first appear
+            if (co == 1) {
+                props, err := bucket.GetObjectDetailedMeta(info.PicPrefix + info.PicURL)
+                if err != nil {
+                    fmt.Println("ObjectError:", err)
+                    //os.Exit(-1)
+                }else {
+
+                    Cont := utils.FormatSize(props["Content-Length"][0])
+                    ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
+
+                    total[info.TableName+"_Pic"]["totalSize"] += ContentLength
+                    total[info.TableName+"_Pic"]["totalCount"] ++
+
+                    fmt.Printf("%s | %s\n", Cont, info.PicURL)
+                    write.CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.PicURL))
+                }
+            }
         }
     }
 
@@ -210,19 +225,28 @@ func (o *OSS) sizeCalc(info base.BaseInfo, fileName string, total map[string]map
             fmt.Println("BucketError:", err)
             //os.Exit(-1)
         }else {
-            props, err := bucket.GetObjectDetailedMeta(info.VoicePrefix + info.VoiceURL)
+            redisKey := fmt.Sprintf("%s_%s", fName, info.VoiceURL)
+            co, err := redis.Int64(redisConn.Do("INCR", redisKey))
             if err != nil {
-                fmt.Println("ObjectError:", err)
-                //os.Exit(-1)
-            }else {
-                Cont := utils.FormatSize(props["Content-Length"][0])
-                ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
+                log.Println("INCR failed:", err)
+            }
 
-                total[info.TableName + "_Voice"]["totalSize"] += ContentLength
-                total[info.TableName + "_Voice"]["totalCount"] ++
+            // first appear
+            if (co == 1) {
+                props, err := bucket.GetObjectDetailedMeta(info.VoicePrefix + info.VoiceURL)
+                if err != nil {
+                    fmt.Println("ObjectError:", err)
+                    //os.Exit(-1)
+                } else {
+                    Cont := utils.FormatSize(props["Content-Length"][0])
+                    ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
 
-                fmt.Printf("%s | %s\n", Cont, info.VoiceURL)
-                write.CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.VoiceURL))
+                    total[info.TableName+"_Voice"]["totalSize"] += ContentLength
+                    total[info.TableName+"_Voice"]["totalCount"] ++
+
+                    fmt.Printf("%s | %s\n", Cont, info.VoiceURL)
+                    write.CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.VoiceURL))
+                }
             }
         }
     }
@@ -245,19 +269,28 @@ func (o *OSS) sizeCalc(info base.BaseInfo, fileName string, total map[string]map
             fmt.Println("BucketError:", err)
             //os.Exit(-1)
         }else {
-            props, err := bucket.GetObjectDetailedMeta(info.VideoPrefix + info.VideoURL)
+            redisKey := fmt.Sprintf("%s_%s", fName, info.VideoURL)
+            co, err := redis.Int64(redisConn.Do("INCR", redisKey))
             if err != nil {
-                fmt.Println("ObjectError:", err)
-                //os.Exit(-1)
-            }else {
-                Cont := utils.FormatSize(props["Content-Length"][0])
-                ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
+                log.Println("INCR failed:", err)
+            }
 
-                total[info.TableName + "_Video"]["totalSize"] += ContentLength
-                total[info.TableName + "_Video"]["totalCount"] ++
+            // first appear
+            if (co == 1) {
+                props, err := bucket.GetObjectDetailedMeta(info.VideoPrefix + info.VideoURL)
+                if err != nil {
+                    fmt.Println("ObjectError:", err)
+                    //os.Exit(-1)
+                }else {
+                    Cont := utils.FormatSize(props["Content-Length"][0])
+                    ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
 
-                fmt.Printf("%s | %s\n", Cont, info.VideoURL)
-                write.CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.VideoURL))
+                    total[info.TableName + "_Video"]["totalSize"] += ContentLength
+                    total[info.TableName + "_Video"]["totalCount"] ++
+
+                    fmt.Printf("%s | %s\n", Cont, info.VideoURL)
+                    write.CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.VideoURL))
+                }
             }
         }
     }
@@ -280,20 +313,29 @@ func (o *OSS) sizeCalc(info base.BaseInfo, fileName string, total map[string]map
 			fmt.Println("BucketError:", err)
 			//os.Exit(-1)
 		}else {
-			props, err := bucket.GetObjectDetailedMeta(info.DocPrefix + info.DocURL)
-			if err != nil {
-				fmt.Println("ObjectError:", err)
-				//os.Exit(-1)
-			}else {
-				Cont := utils.FormatSize(props["Content-Length"][0])
-				ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
+            redisKey := fmt.Sprintf("%s_%s", fName, info.DocURL)
+            co, err := redis.Int64(redisConn.Do("INCR", redisKey))
+            if err != nil {
+                log.Println("INCR failed:", err)
+            }
 
-				total[info.TableName + "_Video"]["totalSize"] += ContentLength
-				total[info.TableName + "_Video"]["totalCount"] ++
+            // first appear
+            if (co == 1) {
+                props, err := bucket.GetObjectDetailedMeta(info.DocPrefix + info.DocURL)
+                if err != nil {
+                    fmt.Println("ObjectError:", err)
+                    //os.Exit(-1)
+                } else {
+                    Cont := utils.FormatSize(props["Content-Length"][0])
+                    ContentLength, _ := strconv.Atoi(props["Content-Length"][0])
 
-				fmt.Printf("%s | %s\n", Cont, info.DocURL)
-                write.CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.DocURL))
-			}
+                    total[info.TableName+"_Video"]["totalSize"] += ContentLength
+                    total[info.TableName+"_Video"]["totalCount"] ++
+
+                    fmt.Printf("%s | %s\n", Cont, info.DocURL)
+                    write.CreateFile(fName, fmt.Sprintf("%s | %s \n", Cont, info.DocURL))
+                }
+            }
 		}
     }
 }

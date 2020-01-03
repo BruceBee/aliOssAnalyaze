@@ -19,7 +19,8 @@ import (
 
 // QueryEvalVoice for a list of basic data types
 func QueryEvalVoice(groupID int64) (Q []base.BaseInfo) {
-	db, _ := db.InitDB()
+	mysqlConn, _ := db.InitDB()
+	defer mysqlConn.Close()
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
@@ -30,7 +31,7 @@ func QueryEvalVoice(groupID int64) (Q []base.BaseInfo) {
 		TableName: filename,
 	}
 
-	url , err:= QueryEvalVoiceURL(db, b.GrpID)
+	url , err:= QueryEvalVoiceURL(mysqlConn, b.GrpID)
 	if nil != err {
 		fmt.Println("error")
 	}

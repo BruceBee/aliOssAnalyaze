@@ -45,7 +45,9 @@ func (c CardQuestion) IsEmpty() bool {
 // QueryCardQuestion is get a list of basic data types
 func QueryCardQuestion(groupID int64) (Q []base.BaseInfo) {
 
-	db, _ := db.InitDB()
+	mysqlConn, _ := db.InitDB()
+	defer mysqlConn.Close()
+
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
@@ -55,7 +57,7 @@ func QueryCardQuestion(groupID int64) (Q []base.BaseInfo) {
 		VoicePrefix: "backend_voice/",
 		TableName: filename,
 	}
-	url , err:= QueryCardQuestionURL(db, b.GrpID)
+	url , err:= QueryCardQuestionURL(mysqlConn, b.GrpID)
 	if nil != err {
 		fmt.Println("error")
 	}

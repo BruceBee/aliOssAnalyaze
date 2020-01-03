@@ -42,7 +42,9 @@ func (c CardChapter) IsEmpty() bool {
 // QueryCardChapter is get a list of basic data types
 func QueryCardChapter(groupID int64) (Q []base.BaseInfo) {
 
-	db, _ := db.InitDB()
+	mysqlConn, _ := db.InitDB()
+	defer mysqlConn.Close()
+
 	_, file, _, _ := runtime.Caller(0)
 	f := strings.Split(file, "/")
 	filename :=strings.Split(f[len(f)-1], ".")[0]
@@ -52,7 +54,7 @@ func QueryCardChapter(groupID int64) (Q []base.BaseInfo) {
 		PicPrefix: "backend_pic/dst/poster/",
 		TableName: filename,
 	}
-	url , err:= QueryCardChapterURL(db, b.GrpID)
+	url , err:= QueryCardChapterURL(mysqlConn, b.GrpID)
 	if nil != err {
 		fmt.Println("error")
 	}
